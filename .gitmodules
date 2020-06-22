@@ -1,0 +1,6 @@
+[submodule "renderer.git"]
+	path = renderer
+	url = https://github.com/aclysma/renderer_prototype.git
+[submodule "minimum.git"]
+	path = minimum
+	url = https://github.com/aclysma/minimum.git
