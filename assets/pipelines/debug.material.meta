@@ -1,0 +1,37 @@
+(
+    version: 1,
+    import_hash: Some(12216564180322863606),
+    importer_version: 2,
+    importer_type: "eb9a20b7-3957-46fd-b832-2e7e99852bb0",
+    importer_options: (),
+    importer_state: (Some("11d3b144-f564-42c9-b31f-82c8a938bf85")),
+    assets: [
+        (
+            id: "11d3b144-f564-42c9-b31f-82c8a938bf85",
+            search_tags: [
+                ("file_name", Some("debug.material")),
+            ],
+            build_pipeline: None,
+            artifact: Some((
+                hash: 6859254437157823177,
+                id: "11d3b144-f564-42c9-b31f-82c8a938bf85",
+                build_deps: [
+                    Path("debug.pipeline"),
+                    Path("../shaders/debug.vert.spv"),
+                    Path("../shaders/debug.frag.spv"),
+                    Path("debug.renderpass"),
+                ],
+                load_deps: [
+                    Path("debug.renderpass"),
+                    Path("../shaders/debug.vert.spv"),
+                    Path("../shaders/debug.frag.spv"),
+                    Path("debug.pipeline"),
+                ],
+                compression: None,
+                compressed_size: Some(286),
+                uncompressed_size: Some(286),
+                type_id: "ad94bca2-1f02-4e5f-9117-1a7b03456a11",
+            )),
+        ),
+    ],
+)
