@@ -1,50 +1,22 @@
-use renderer::vulkan::{
-    LogicalSize, Window, VkDevice, VkSwapchain, VkSurface, VkDeviceContext, VkTransferUpload,
-    VkTransferUploadState, VkImage, VkContextBuilder, MsaaLevel, VkCreateContextError, VkContext,
-};
+// There's a decent amount of code that's just for example and isn't called
+#![allow(dead_code)]
+
+use renderer::vulkan::VkDeviceContext;
 use renderer_shell_vulkan_sdl2::Sdl2Window;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use ash::prelude::VkResult;
-use renderer::features::imgui_support::{ImGuiFontAtlas, Sdl2ImguiManager};
-use imgui::sys::ImGuiStorage_GetBoolRef;
+use crate::imgui_support::Sdl2ImguiManager;
 use sdl2::mouse::MouseState;
-use renderer::features::{
-    PositionComponent, SpriteComponent, PointLightComponent, SpotLightComponent,
-    DirectionalLightComponent,
+use crate::components::{
+    PositionComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent,
 };
-use atelier_assets::loader as atelier_loader;
 use legion::prelude::*;
 
-use atelier_assets::core::asset_uuid;
-use atelier_assets::core as atelier_core;
-use atelier_assets::core::AssetUuid;
-
 use renderer::assets::asset_resource::AssetResource;
-use renderer::assets::image_utils::{DecodedTexture, enqueue_load_images};
-use imgui::{Key, Image};
-use renderer::assets::asset_storage::{ResourceLoadHandler};
-use std::mem::ManuallyDrop;
-use std::time::Duration;
-use atelier_loader::AssetLoadOp;
-use std::error::Error;
-use renderer::assets::assets::image::ImageAsset;
-use renderer::assets::vk_description::GraphicsPipeline;
-use std::io::Write;
-use std::collections::hash_map::DefaultHasher;
-use renderer::features::features::sprite::{SpriteRenderNodeSet, SpriteRenderNode};
-use renderer::visibility::{
-    StaticVisibilityNodeSet, DynamicVisibilityNodeSet, DynamicAabbVisibilityNode,
-};
 use renderer::base::time::TimeState;
-use glam::f32::Vec3;
 use renderer::resources::resource_managers::ResourceManager;
-use renderer::nodes::RenderRegistry;
-use sdl2::event::EventType::RenderDeviceReset;
-use crate::game_renderer::{GameRenderer, SwapchainLifetimeListener};
-use crate::assets::gltf::MeshAsset;
-use crate::features::mesh::{MeshRenderNodeSet, MeshRenderNode};
-use renderer::features::renderpass::debug_renderpass::DebugDraw3DResource;
+use crate::game_renderer::GameRenderer;
+use crate::features::debug3d::DebugDraw3DResource;
 use crate::resource_manager::GameResourceManager;
 
 mod assets;
@@ -56,6 +28,10 @@ mod test_scene;
 mod resource_manager;
 mod components;
 mod asset_lookup;
+mod renderpass;
+mod imgui_support;
+mod phases;
+mod render_contexts;
 
 fn main() {
     init::logging_init();
@@ -118,7 +94,6 @@ fn main() {
         //
         {
             let imgui_manager = resources.get::<Sdl2ImguiManager>().unwrap();
-            let window = Sdl2Window::new(&sdl2_systems.window);
             imgui_manager.begin_frame(&sdl2_systems.window, &MouseState::new(&event_pump));
         }
 
@@ -134,15 +109,13 @@ fn main() {
         // Update graphics resources
         //
         {
-            // let device = resources.get::<VkDeviceContext>().unwrap();
-            // let mut game_renderer = resources.get_mut::<Game>().unwrap();
-            // game_renderer.update_resources(&*device);
-            renderer::resources::update_renderer_assets(&resources);
-
-            let resource_manager = resources.get::<ResourceManager>().unwrap();
+            let mut resource_manager = resources.get_mut::<ResourceManager>().unwrap();
             let mut game_resource_manager = resources.get_mut::<GameResourceManager>().unwrap();
 
-            game_resource_manager.update_resources(&*resource_manager);
+            resource_manager.update_resources().unwrap();
+            game_resource_manager
+                .update_resources(&*resource_manager)
+                .unwrap();
         }
 
         //
@@ -191,8 +164,10 @@ fn main() {
         //
         {
             let window = Sdl2Window::new(&sdl2_systems.window);
-            let mut game_renderer = resources.get::<GameRenderer>().unwrap();
-            game_renderer.begin_render(&resources, &world, &window);
+            let game_renderer = resources.get::<GameRenderer>().unwrap();
+            game_renderer
+                .begin_render(&resources, &world, &window)
+                .unwrap();
         }
 
         //let t2 = std::time::Instant::now();
@@ -208,7 +183,7 @@ fn add_light_debug_draw(
 ) {
     let mut debug_draw = resources.get_mut::<DebugDraw3DResource>().unwrap();
 
-    let query = <(Read<DirectionalLightComponent>)>::query();
+    let query = <Read<DirectionalLightComponent>>::query();
     for light in query.iter(world) {
         let light_from = glam::Vec3::new(0.0, 0.0, 0.0);
         let light_to = light.direction;
@@ -257,7 +232,7 @@ fn process_input(
                 //
                 Event::KeyDown {
                     keycode: Some(keycode),
-                    keymod: modifiers,
+                    keymod: _modifiers,
                     ..
                 } => {
                     //log::trace!("Key Down {:?} {:?}", keycode, modifiers);

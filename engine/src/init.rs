@@ -3,17 +3,22 @@ use legion::prelude::Resources;
 use renderer::vulkan::{
     LogicalSize, VkContextBuilder, MsaaLevel, VkDeviceContext, VkSurface, VkContext,
 };
-use renderer::features::features::sprite::SpriteRenderNodeSet;
+use crate::features::sprite::{SpriteRenderNodeSet, SpriteRenderFeature};
 use crate::features::mesh::{MeshRenderNodeSet, MeshRenderFeature};
 use renderer::visibility::{StaticVisibilityNodeSet, DynamicVisibilityNodeSet};
 use renderer_shell_vulkan_sdl2::Sdl2Window;
 use crate::game_renderer::{SwapchainLifetimeListener, GameRenderer};
-use renderer::features::renderpass::debug_renderpass::DebugDraw3DResource;
+use crate::features::debug3d::{DebugDraw3DResource, Debug3dRenderFeature};
 use renderer::nodes::RenderRegistry;
 use crate::assets::gltf::{MeshAsset, GltfMaterialAsset};
 use crate::resource_manager::GameResourceManager;
+use renderer::resources::ResourceManager;
+use crate::phases::{OpaqueRenderPhase, UiRenderPhase};
+use crate::phases::TransparentRenderPhase;
+use crate::features::imgui::ImGuiRenderFeature;
 
 pub fn logging_init() {
+    #[allow(unused_assignments)]
     let mut log_level = log::LevelFilter::Info;
     //#[cfg(debug_assertions)]
     {
@@ -91,7 +96,7 @@ pub fn imgui_init(
 ) {
     // Load imgui, we do it a little early because it wants to have the actual SDL2 window and
     // doesn't work with the thin window wrapper
-    let imgui_manager = renderer::features::imgui_support::init_imgui_manager(sdl2_window);
+    let imgui_manager = crate::imgui_support::init_imgui_manager(sdl2_window);
     resources.insert(imgui_manager);
 }
 
@@ -106,6 +111,7 @@ pub fn rendering_init(
     resources.insert(MeshRenderNodeSet::default());
     resources.insert(StaticVisibilityNodeSet::default());
     resources.insert(DynamicVisibilityNodeSet::default());
+    resources.insert(DebugDraw3DResource::new());
 
     let mut context = VkContextBuilder::new()
         .use_vulkan_debug_layer(false)
@@ -120,17 +126,19 @@ pub fn rendering_init(
 
     let vk_context = context.build(&window_wrapper).unwrap();
     let device_context = vk_context.device_context().clone();
+    let resource_manager = {
+        let mut asset_resourceh = resources.get_mut::<AssetResource>().unwrap();
+        renderer::resources::create_resource_manager(&device_context, &mut *asset_resourceh)
+    };
     resources.insert(vk_context);
     resources.insert(device_context);
-
-    renderer::resources::init_renderer_assets(resources);
+    resources.insert(resource_manager);
 
     {
         //
         // Create the game resource manager
         //
-        let device_context = resources.get_mut::<VkDeviceContext>().unwrap().clone();
-        let mut resource_manager = GameResourceManager::new(&device_context);
+        let resource_manager = GameResourceManager::new();
         resources.insert(resource_manager);
 
         let mut asset_resource_fetch = resources.get_mut::<AssetResource>().unwrap();
@@ -146,15 +154,18 @@ pub fn rendering_init(
         asset_resource.add_storage::<GltfMaterialAsset>();
     }
 
-    let mut render_registry_builder = renderer::features::create_default_registry_builder();
-    let render_registry = render_registry_builder
+    let render_registry = renderer::nodes::RenderRegistryBuilder::default()
+        .register_feature::<SpriteRenderFeature>()
         .register_feature::<MeshRenderFeature>()
+        .register_feature::<Debug3dRenderFeature>()
+        .register_feature::<ImGuiRenderFeature>()
+        .register_render_phase::<OpaqueRenderPhase>()
+        .register_render_phase::<TransparentRenderPhase>()
+        .register_render_phase::<UiRenderPhase>()
         .build();
     resources.insert(render_registry);
 
-    renderer::features::init_renderer_features(resources);
-
-    let mut game_renderer = GameRenderer::new(&window_wrapper, &resources).unwrap();
+    let game_renderer = GameRenderer::new(&window_wrapper, &resources).unwrap();
     resources.insert(game_renderer);
 
     let window_surface =
@@ -173,13 +184,10 @@ pub fn rendering_destroy(resources: &mut Resources) {
         resources.remove::<MeshRenderNodeSet>();
         resources.remove::<StaticVisibilityNodeSet>();
         resources.remove::<DynamicVisibilityNodeSet>();
-
-        renderer::features::destroy_renderer_features(resources);
-
+        resources.remove::<DebugDraw3DResource>();
         resources.remove::<GameResourceManager>();
-
         resources.remove::<RenderRegistry>();
-        renderer::resources::destroy_renderer_assets(resources);
+        resources.remove::<ResourceManager>();
     }
 
     // Drop this one last

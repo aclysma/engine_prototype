@@ -1,14 +1,9 @@
-use crate::features::mesh::{
-    MeshRenderFeature, MeshDrawCall, ExtractedFrameNodeMeshData, ExtractedViewNodeMeshData,
-    PreparedViewNodeMeshData,
-};
+use crate::features::mesh::{MeshRenderFeature, ExtractedFrameNodeMeshData, PreparedViewNodeMeshData};
 use renderer::nodes::{
     RenderFeatureIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
 };
-use renderer::features::RenderJobWriteContext;
-use renderer::vulkan::{VkBuffer, VkBufferRaw};
-use std::mem::ManuallyDrop;
-use renderer::resources::resource_managers::{ResourceArc, PipelineSwapchainInfo, DescriptorSetArc};
+use crate::render_contexts::RenderJobWriteContext;
+use renderer::resources::resource_managers::{PipelineSwapchainInfo, DescriptorSetArc};
 use ash::vk;
 use ash::version::DeviceV1_0;
 
@@ -23,7 +18,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for MeshCommandWriter {
     fn apply_setup(
         &self,
         write_context: &mut RenderJobWriteContext,
-        view: &RenderView,
+        _view: &RenderView,
     ) {
         // println!("render");
         let logical_device = write_context.device_context.device();
@@ -40,7 +35,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for MeshCommandWriter {
     fn render_element(
         &self,
         write_context: &mut RenderJobWriteContext,
-        view: &RenderView,
+        _view: &RenderView,
         index: SubmitNodeId,
     ) {
         let logical_device = write_context.device_context.device();
@@ -112,7 +107,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for MeshCommandWriter {
     fn revert_setup(
         &self,
         _write_context: &mut RenderJobWriteContext,
-        view: &RenderView,
+        _view: &RenderView,
     ) {
     }
 

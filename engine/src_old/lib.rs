@@ -1,3 +1,0 @@
-
-use renderer;
-use minimum;

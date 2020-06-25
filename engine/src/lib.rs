@@ -1,3 +1,3 @@
 
-use renderer;
-use minimum;
+pub use renderer;
+pub use minimum;

@@ -1,6 +1,5 @@
 use atelier_assets::core::{AssetUuid, AssetRef};
 use atelier_assets::importer::{Error, ImportedAsset, Importer, ImporterValue, SourceFileImporter};
-use image2::{color, ImageBuf, Image};
 use serde::{Deserialize, Serialize};
 use type_uuid::*;
 use std::io::Read;
@@ -9,17 +8,13 @@ use gltf::image::Data as GltfImageData;
 use gltf::buffer::Data as GltfBufferData;
 use fnv::FnvHashMap;
 use atelier_assets::loader::handle::Handle;
-use gltf::{Accessor, Gltf};
-use gltf::mesh::util::indices::CastingIter;
 use crate::assets::gltf::{
-    GltfMaterialAsset, MeshAsset, MeshPart, MeshVertex, GltfMaterialData,
-    GltfMaterialDataShaderParam,
+    GltfMaterialAsset, MeshAsset, MeshPart, MeshVertex, GltfMaterialDataShaderParam,
 };
 use renderer::assets::assets::image::{ImageAsset, ColorSpace};
 use renderer::assets::assets::buffer::BufferAsset;
 use renderer::assets::push_buffer::PushBuffer;
 use atelier_assets::loader::handle::SerdeContext;
-use atelier_assets::loader::handle::AssetHandle;
 use renderer::assets::assets::pipeline::{
     MaterialInstanceAsset, MaterialAsset, MaterialInstanceSlotAssignment,
 };
@@ -78,12 +73,12 @@ struct BufferToImport {
     asset: BufferAsset,
 }
 
-fn get_or_create_uuid(option_uuid: &mut Option<AssetUuid>) -> AssetUuid {
-    let uuid = option_uuid.unwrap_or_else(|| AssetUuid(*uuid::Uuid::new_v4().as_bytes()));
-
-    *option_uuid = Some(uuid);
-    uuid
-}
+// fn get_or_create_uuid(option_uuid: &mut Option<AssetUuid>) -> AssetUuid {
+//     let uuid = option_uuid.unwrap_or_else(|| AssetUuid(*uuid::Uuid::new_v4().as_bytes()));
+//
+//     *option_uuid = Some(uuid);
+//     uuid
+// }
 
 #[derive(TypeUuid, Serialize, Deserialize, Default)]
 #[uuid = "807c83b3-c24c-4123-9580-5f9c426260b4"]
@@ -120,8 +115,8 @@ impl Importer for GltfImporter {
     /// Reads the given bytes and produces assets.
     fn import(
         &self,
-        source: &mut Read,
-        options: Self::Options,
+        source: &mut dyn Read,
+        _options: Self::Options,
         state: &mut Self::State,
     ) -> atelier_assets::importer::Result<ImporterValue> {
         //
@@ -494,7 +489,7 @@ impl Importer for GltfImporter {
 
 fn extract_images_to_import(
     doc: &gltf::Document,
-    buffers: &Vec<GltfBufferData>,
+    _buffers: &Vec<GltfBufferData>,
     images: &Vec<GltfImageData>,
     image_color_space_assignments: &FnvHashMap<usize, ColorSpace>,
 ) -> Vec<ImageToImport> {
@@ -640,8 +635,8 @@ fn build_image_color_space_assignments_from_materials(
 
 fn extract_materials_to_import(
     doc: &gltf::Document,
-    buffers: &Vec<GltfBufferData>,
-    images: &Vec<GltfImageData>,
+    _buffers: &Vec<GltfBufferData>,
+    _images: &Vec<GltfImageData>,
     image_index_to_handle: &[Handle<ImageAsset>],
 ) -> Vec<MaterialToImport> {
     let mut materials_to_import = Vec::with_capacity(doc.materials().len());
@@ -742,7 +737,6 @@ fn extract_materials_to_import(
 fn convert_to_u16_indices(
     read_indices: gltf::mesh::util::ReadIndices
 ) -> Result<Vec<u16>, std::num::TryFromIntError> {
-    use std::convert::TryFrom;
     let indices_u32: Vec<u32> = read_indices.into_u32().collect();
     let mut indices_u16: Vec<u16> = Vec::with_capacity(indices_u32.len());
     for index in indices_u32 {

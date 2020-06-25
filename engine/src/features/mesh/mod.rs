@@ -3,8 +3,7 @@ use renderer::nodes::{
     RenderNodeSet, RenderNodeCount, FrameNodeIndex,
 };
 use std::sync::atomic::{Ordering, AtomicI32};
-use glam::f32::Vec3;
-use renderer::features::{RenderJobExtractContext, RenderJobWriteContext, RenderJobPrepareContext};
+use crate::render_contexts::{RenderJobExtractContext, RenderJobWriteContext, RenderJobPrepareContext};
 use legion::prelude::Entity;
 use renderer::base::slab::{RawSlabKey, RawSlab};
 use std::convert::TryInto;
@@ -14,18 +13,14 @@ mod extract;
 use extract::MeshExtractJobImpl;
 
 mod prepare;
-use prepare::MeshPrepareJobImpl;
 
 mod write;
 use write::MeshCommandWriter;
-use renderer::vulkan::{VkDeviceContext, VkBufferRaw};
-use ash::vk;
+use renderer::vulkan::VkBufferRaw;
 use renderer::resources::resource_managers::{
-    PipelineSwapchainInfo, DynDescriptorSet, DescriptorSetArc, DescriptorSetAllocatorRef,
-    ResourceManager, ResourceArc,
+    PipelineSwapchainInfo, DescriptorSetArc, DescriptorSetAllocatorRef, ResourceArc,
 };
 use renderer::assets::assets::pipeline::MaterialAsset;
-use ash::prelude::VkResult;
 
 // Represents the data uploaded to the GPU to represent a single point light
 #[derive(Default, Copy, Clone)]
@@ -84,13 +79,11 @@ pub struct MeshPerObjectShaderParam {
 } // 128 bytes
 
 pub fn create_mesh_extract_job(
-    device_context: VkDeviceContext,
     descriptor_set_allocator: DescriptorSetAllocatorRef,
     pipeline_info: PipelineSwapchainInfo,
     mesh_material: &Handle<MaterialAsset>,
 ) -> Box<dyn ExtractJob<RenderJobExtractContext, RenderJobPrepareContext, RenderJobWriteContext>> {
     Box::new(DefaultExtractJob::new(MeshExtractJobImpl::new(
-        device_context,
         descriptor_set_allocator,
         pipeline_info,
         mesh_material,

@@ -1,13 +1,13 @@
 use crate::game_renderer::{GameRenderer, GameRendererInner};
 use renderer::nodes::{PrepareJobSet, FramePacket, RenderView, RenderRegistry};
-use renderer::features::{RenderJobPrepareContext, RenderJobWriteContext, RenderJobWriteContextFactory};
+use crate::render_contexts::{
+    RenderJobPrepareContext, RenderJobWriteContext, RenderJobWriteContextFactory,
+};
 use renderer::resources::resource_managers::{DynResourceAllocatorSet, PipelineSwapchainInfo};
 use renderer::vulkan::{VkDeviceContext, FrameInFlight};
-use renderer::features::renderpass::debug_renderpass::LineList3D;
 use std::sync::MutexGuard;
 use ash::prelude::VkResult;
 use ash::vk;
-use renderer::features::imgui_support::ImGuiDrawData;
 
 pub struct RenderFrameJob {
     pub game_renderer: GameRenderer,
@@ -18,17 +18,14 @@ pub struct RenderFrameJob {
     pub render_registry: RenderRegistry,
     pub device_context: VkDeviceContext,
     pub opaque_pipeline_info: PipelineSwapchainInfo,
-    pub debug_pipeline_info: PipelineSwapchainInfo,
-    pub debug_draw_3d_line_lists: Vec<LineList3D>,
-    pub window_scale_factor: f64,
-    pub imgui_draw_data: Option<ImGuiDrawData>,
+    pub imgui_pipeline_info: PipelineSwapchainInfo,
     pub frame_in_flight: FrameInFlight,
 }
 
 impl RenderFrameJob {
     pub fn render_async(self) {
-        let t0 = std::time::Instant::now();
-        let mut guard = self.game_renderer.inner.lock().unwrap();
+        // let t0 = std::time::Instant::now();
+        let guard = self.game_renderer.inner.lock().unwrap();
 
         let result = Self::do_render_async(
             guard,
@@ -39,10 +36,7 @@ impl RenderFrameJob {
             self.render_registry,
             self.device_context,
             self.opaque_pipeline_info,
-            self.debug_pipeline_info,
-            self.debug_draw_3d_line_lists,
-            self.window_scale_factor,
-            self.imgui_draw_data,
+            self.imgui_pipeline_info,
             self.frame_in_flight.present_index() as usize,
         );
 
@@ -52,7 +46,7 @@ impl RenderFrameJob {
         match result {
             Ok(command_buffers) => {
                 // ignore the error, we will receive it when we try to acquire the next image
-                self.frame_in_flight.present(command_buffers.as_slice());
+                let _ = self.frame_in_flight.present(command_buffers.as_slice());
             }
             Err(err) => {
                 log::error!("Render thread failed with error {:?}", err);
@@ -77,10 +71,7 @@ impl RenderFrameJob {
         render_registry: RenderRegistry,
         device_context: VkDeviceContext,
         opaque_pipeline_info: PipelineSwapchainInfo,
-        debug_pipeline_info: PipelineSwapchainInfo,
-        debug_draw_3d_line_lists: Vec<LineList3D>,
-        window_scale_factor: f64,
-        imgui_draw_data: Option<ImGuiDrawData>,
+        imgui_pipeline_info: PipelineSwapchainInfo,
         present_index: usize,
     ) -> VkResult<Vec<vk::CommandBuffer>> {
         let t0 = std::time::Instant::now();
@@ -108,7 +99,7 @@ impl RenderFrameJob {
         //
         // Write Jobs - called from within renderpasses for now
         //
-        let mut write_context_factory = RenderJobWriteContextFactory::new(
+        let write_context_factory = RenderJobWriteContextFactory::new(
             device_context.clone(),
             prepare_context.dyn_resource_lookups,
         );
@@ -134,15 +125,15 @@ impl RenderFrameJob {
             .debug_material_per_frame_data
             .descriptor_set()
             .get();
-        log::trace!("debug_renderpass update");
+        log::trace!("msaa_renderpass update");
 
-        swapchain_resources.debug_renderpass.update(
+        swapchain_resources.msaa_renderpass.update(
             present_index,
             descriptor_set_per_pass,
-            debug_draw_3d_line_lists,
+            //debug_draw_3d_line_lists,
         )?;
         command_buffers
-            .push(swapchain_resources.debug_renderpass.command_buffers[present_index].clone());
+            .push(swapchain_resources.msaa_renderpass.command_buffers[present_index].clone());
 
         //
         // bloom extract
@@ -194,13 +185,15 @@ impl RenderFrameJob {
         //
         // imgui
         //
-        {
-            log::trace!("imgui_event_listener update");
-            let mut commands = guard
-                .imgui_event_listener
-                .render(present_index, imgui_draw_data.as_ref())?;
-            command_buffers.append(&mut commands);
-        }
+        swapchain_resources.ui_renderpass.update(
+            &imgui_pipeline_info,
+            present_index,
+            &*prepared_render_data,
+            &main_view,
+            &write_context_factory,
+        )?;
+        command_buffers
+            .push(swapchain_resources.ui_renderpass.command_buffers[present_index].clone());
 
         let t2 = std::time::Instant::now();
         log::info!(
