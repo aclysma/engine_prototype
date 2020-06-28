@@ -1,5 +1,5 @@
 use legion::prelude::{Resources, World, EntityStore};
-use renderer::assets::asset_resource::AssetResource;
+use minimum::resources::AssetResource;
 use glam::f32::Vec3;
 use crate::features::sprite::{SpriteRenderNodeSet, SpriteRenderNode};
 use renderer::visibility::{DynamicVisibilityNodeSet, DynamicAabbVisibilityNode};
@@ -7,13 +7,13 @@ use crate::components::{
     PositionComponent, SpriteComponent, PointLightComponent, SpotLightComponent,
     DirectionalLightComponent,
 };
-use crate::assets::gltf::MeshAsset;
-use renderer::assets::assets::image::ImageAsset;
+use renderer::assets::ImageAsset;
 use crate::features::mesh::{MeshRenderNodeSet, MeshRenderNode};
 use atelier_assets::core::asset_uuid;
 use atelier_assets::core as atelier_core;
 use atelier_assets::core::AssetUuid;
 use crate::components::MeshComponent;
+use crate::assets::gltf::MeshAsset;
 
 fn begin_load_asset<T>(
     asset_uuid: AssetUuid,

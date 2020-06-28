@@ -4,7 +4,7 @@ use atelier_assets::loader::handle::Handle;
 use crate::assets::gltf::MeshAsset;
 use glam::f32::Vec3;
 use crate::features::sprite::SpriteRenderNodeHandle;
-use renderer::assets::assets::image::ImageAsset;
+use renderer::assets::ImageAsset;
 
 #[derive(Clone)]
 pub struct MeshComponent {

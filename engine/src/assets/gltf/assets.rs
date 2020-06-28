@@ -1,9 +1,13 @@
 use serde::{Deserialize, Serialize};
 use type_uuid::*;
-use renderer::assets::assets::buffer::BufferAsset;
 use atelier_assets::loader::handle::Handle;
-use renderer::assets::assets::image::ImageAsset;
-use renderer::assets::assets::pipeline::MaterialInstanceAsset;
+use renderer::assets::ImageAsset;
+use renderer::assets::MaterialInstanceAsset;
+use renderer::assets::BufferAsset;
+use std::sync::Arc;
+use renderer::assets::DescriptorSetArc;
+use renderer::assets::ResourceArc;
+use renderer::vulkan::VkBufferRaw;
 
 //TODO: These are extensions that might be interesting to try supporting. In particular, lights,
 // LOD, and clearcoat
@@ -138,7 +142,7 @@ pub struct MeshVertex {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct MeshPart {
+pub struct MeshPartData {
     pub vertex_buffer_offset_in_bytes: u32,
     pub vertex_buffer_size_in_bytes: u32,
     pub index_buffer_offset_in_bytes: u32,
@@ -149,8 +153,46 @@ pub struct MeshPart {
 
 #[derive(TypeUuid, Serialize, Deserialize, Clone)]
 #[uuid = "cf232526-3757-4d94-98d1-c2f7e27c979f"]
-pub struct MeshAsset {
-    pub mesh_parts: Vec<MeshPart>,
+pub struct MeshAssetData {
+    pub mesh_parts: Vec<MeshPartData>,
     pub vertex_buffer: Handle<BufferAsset>, //Vec<MeshVertex>,
     pub index_buffer: Handle<BufferAsset>,  //Vec<u16>,
+}
+
+pub struct MeshAssetPart {
+    //pub material: ResourceArc<LoadedMaterial>,
+    pub material_instance: Arc<Vec<Vec<DescriptorSetArc>>>,
+}
+
+pub struct MeshAssetInner {
+    pub mesh_parts: Vec<MeshAssetPart>,
+    pub vertex_buffer: ResourceArc<VkBufferRaw>,
+    pub index_buffer: ResourceArc<VkBufferRaw>,
+    pub asset: MeshAssetData,
+}
+
+#[derive(TypeUuid, Clone)]
+#[uuid = "689a0bf0-e320-41c0-b4e8-bdb2055a7a57"]
+pub struct MeshAsset {
+    pub inner: Arc<MeshAssetInner>,
+}
+
+impl MeshAsset {
+    pub fn new(
+        mesh_parts: Vec<MeshAssetPart>,
+        vertex_buffer: ResourceArc<VkBufferRaw>,
+        index_buffer: ResourceArc<VkBufferRaw>,
+        asset: MeshAssetData,
+    ) -> MeshAsset {
+        let inner = MeshAssetInner {
+            mesh_parts,
+            vertex_buffer,
+            index_buffer,
+            asset,
+        };
+
+        MeshAsset {
+            inner: Arc::new(inner),
+        }
+    }
 }

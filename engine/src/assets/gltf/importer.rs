@@ -9,19 +9,19 @@ use gltf::buffer::Data as GltfBufferData;
 use fnv::FnvHashMap;
 use atelier_assets::loader::handle::Handle;
 use crate::assets::gltf::{
-    GltfMaterialAsset, MeshAsset, MeshPart, MeshVertex, GltfMaterialDataShaderParam,
+    GltfMaterialAsset, MeshAssetData, MeshPartData, MeshVertex, GltfMaterialDataShaderParam,
 };
-use renderer::assets::assets::image::{ImageAsset, ColorSpace};
-use renderer::assets::assets::buffer::BufferAsset;
+use renderer::assets::assets::{ImageAssetData, ColorSpace};
+use renderer::assets::assets::BufferAssetData;
 use renderer::assets::push_buffer::PushBuffer;
 use atelier_assets::loader::handle::SerdeContext;
-use renderer::assets::assets::pipeline::{
-    MaterialInstanceAsset, MaterialAsset, MaterialInstanceSlotAssignment,
-};
+use renderer::assets::assets::{MaterialInstanceAssetData, MaterialInstanceSlotAssignment};
 use std::str::FromStr;
-// use atelier_assets::importer::Result as ImporterResult;
-// use atelier_assets::importer::Error as ImporterError;
 use serde::export::Formatter;
+use renderer::assets::ImageAsset;
+use renderer::assets::MaterialInstanceAsset;
+use renderer::assets::BufferAsset;
+use renderer::assets::MaterialAsset;
 
 #[derive(Debug)]
 struct GltfImportError {
@@ -55,7 +55,7 @@ enum GltfObjectId {
 
 struct ImageToImport {
     id: GltfObjectId,
-    asset: ImageAsset,
+    asset: ImageAssetData,
 }
 
 struct MaterialToImport {
@@ -65,12 +65,12 @@ struct MaterialToImport {
 
 struct MeshToImport {
     id: GltfObjectId,
-    asset: MeshAsset,
+    asset: MeshAssetData,
 }
 
 struct BufferToImport {
     id: GltfObjectId,
-    asset: BufferAsset,
+    asset: BufferAssetData,
 }
 
 // fn get_or_create_uuid(option_uuid: &mut Option<AssetUuid>) -> AssetUuid {
@@ -154,7 +154,7 @@ impl Importer for GltfImporter {
             return Err(Error::Boxed(Box::new(err)));
         }
 
-        let (doc, buffers, images) = gltf::import_slice(&bytes).unwrap();
+        let (doc, buffers, images) = result.unwrap();
 
         // Accumulate everything we will import in this list
         let mut imported_assets = Vec::new();
@@ -361,7 +361,7 @@ impl Importer for GltfImporter {
                 &null_image_handle,
             );
 
-            let material_instance_asset = MaterialInstanceAsset {
+            let material_instance_asset = MaterialInstanceAssetData {
                 material: material_handle.clone(),
                 slot_assignments,
             };
@@ -566,7 +566,7 @@ fn extract_images_to_import(
             image.index()
         );
 
-        let asset = ImageAsset {
+        let asset = ImageAssetData {
             data: converted_image.to_vec(),
             width: image_data.width,
             height: image_data.height,
@@ -761,7 +761,7 @@ fn extract_meshes_to_import(
         let mut all_vertices = PushBuffer::new(16384);
         let mut all_indices = PushBuffer::new(16384);
 
-        let mut mesh_parts: Vec<MeshPart> = Vec::with_capacity(mesh.primitives().len());
+        let mut mesh_parts: Vec<MeshPartData> = Vec::with_capacity(mesh.primitives().len());
 
         //
         // Iterate all mesh parts, building a single vertex and index buffer. Each MeshPart will
@@ -828,7 +828,7 @@ fn extract_meshes_to_import(
                             )));
                         };
 
-                        Some(MeshPart {
+                        Some(MeshPartData {
                             material,
                             material_instance,
                             vertex_buffer_offset_in_bytes: vertex_offset as u32,
@@ -856,7 +856,7 @@ fn extract_meshes_to_import(
         //
         // Vertex Buffer
         //
-        let vertex_buffer_asset = BufferAsset {
+        let vertex_buffer_asset = BufferAssetData {
             data: all_vertices.into_data(),
         };
 
@@ -884,7 +884,7 @@ fn extract_meshes_to_import(
         //
         // Index Buffer
         //
-        let index_buffer_asset = BufferAsset {
+        let index_buffer_asset = BufferAssetData {
             data: all_indices.into_data(),
         };
 
@@ -909,7 +909,7 @@ fn extract_meshes_to_import(
                 Handle::<BufferAsset>::new(ref_op_sender.clone(), load_handle)
             });
 
-        let asset = MeshAsset {
+        let asset = MeshAssetData {
             mesh_parts,
             vertex_buffer: vertex_buffer_handle,
             index_buffer: index_buffer_handle,

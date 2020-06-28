@@ -12,13 +12,13 @@ use renderer::nodes::{
 };
 use renderer::base::slab::RawSlabKey;
 use crate::features::mesh::prepare::MeshPrepareJobImpl;
-use renderer::resources::resource_managers::{PipelineSwapchainInfo, DescriptorSetAllocatorRef};
-use renderer::assets::assets::pipeline::MaterialAsset;
+use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetAllocatorRef};
 use atelier_assets::loader::handle::Handle;
-use renderer::resources::resource_managers::DescriptorSetArc;
+use renderer::assets::resources::DescriptorSetArc;
 use legion::prelude::*;
 use crate::components::MeshComponent;
-use crate::resource_manager::GameResourceManager;
+use crate::game_resource_manager::GameResourceManager;
+use renderer::assets::MaterialAsset;
 
 pub struct MeshExtractJobImpl {
     descriptor_set_allocator: DescriptorSetAllocatorRef,

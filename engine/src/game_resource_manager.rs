@@ -1,39 +1,39 @@
-use renderer::resources::resource_managers::{
-    DescriptorSetArc, AssetLookup, ResourceArc, LoadQueues, GenericLoadHandler, ResourceManager,
+use renderer::assets::{
+    DescriptorSetArc, AssetLookup, ResourceArc, LoadQueues, GenericLoader, ResourceManager,
 };
 use renderer::vulkan::VkBufferRaw;
-use crate::asset_lookup::{
-    GameLoadedAssetMetrics, GameLoadedAssetLookupSet, LoadedMesh, LoadedMeshPart,
-};
+use crate::game_asset_lookup::{GameAssetLookupSet, GameAssetMetrics};
 use atelier_assets::loader::handle::Handle;
 use atelier_assets::loader::handle::AssetHandle;
 use ash::prelude::VkResult;
 use atelier_assets::loader::AssetLoadOp;
-use crate::assets::gltf::MeshAsset;
+use crate::assets::gltf::{MeshAssetData, MeshAsset, MeshAssetPart};
+use std::sync::Arc;
+use crossbeam_channel::Sender;
 
 pub struct MeshPartInfo {
-    pub material_instance: Vec<Vec<DescriptorSetArc>>,
+    pub material_instance: Arc<Vec<Vec<DescriptorSetArc>>>,
 }
 
 pub struct MeshInfo {
     pub vertex_buffer: ResourceArc<VkBufferRaw>,
     pub index_buffer: ResourceArc<VkBufferRaw>,
-    pub mesh_asset: MeshAsset,
+    pub mesh_asset: MeshAssetData,
     pub mesh_parts: Vec<MeshPartInfo>,
 }
 
 #[derive(Debug)]
 pub struct GameResourceManagerMetrics {
-    pub game_loaded_asset_metrics: GameLoadedAssetMetrics,
+    pub game_loaded_asset_metrics: GameAssetMetrics,
 }
 
 #[derive(Default)]
 pub struct GameLoadQueueSet {
-    pub meshes: LoadQueues<MeshAsset>,
+    pub meshes: LoadQueues<MeshAssetData, MeshAsset>,
 }
 
 pub struct GameResourceManager {
-    loaded_assets: GameLoadedAssetLookupSet,
+    loaded_assets: GameAssetLookupSet,
     load_queues: GameLoadQueueSet,
 }
 
@@ -45,8 +45,8 @@ impl GameResourceManager {
         }
     }
 
-    pub fn create_mesh_load_handler(&self) -> GenericLoadHandler<MeshAsset> {
-        self.load_queues.meshes.create_load_handler()
+    pub fn create_mesh_loader(&self) -> GenericLoader<MeshAssetData, MeshAsset> {
+        self.load_queues.meshes.create_loader()
     }
 
     pub fn get_mesh_info(
@@ -58,6 +58,7 @@ impl GameResourceManager {
             .get_committed(handle.load_handle())
             .map(|loaded_mesh| {
                 let mesh_parts: Vec<_> = loaded_mesh
+                    .inner
                     .mesh_parts
                     .iter()
                     .map(|x| MeshPartInfo {
@@ -66,9 +67,9 @@ impl GameResourceManager {
                     .collect();
 
                 MeshInfo {
-                    vertex_buffer: loaded_mesh.vertex_buffer.clone(),
-                    index_buffer: loaded_mesh.index_buffer.clone(),
-                    mesh_asset: loaded_mesh.asset.clone(),
+                    vertex_buffer: loaded_mesh.inner.vertex_buffer.clone(),
+                    index_buffer: loaded_mesh.inner.index_buffer.clone(),
+                    mesh_asset: loaded_mesh.inner.asset.clone(),
                     mesh_parts,
                 }
             })
@@ -102,6 +103,7 @@ impl GameResourceManager {
                 request.load_op,
                 loaded_asset,
                 &mut self.loaded_assets.meshes,
+                request.result_tx,
             );
         }
 
@@ -109,14 +111,16 @@ impl GameResourceManager {
         Self::handle_free_requests(&mut self.load_queues.meshes, &mut self.loaded_assets.meshes);
     }
 
-    fn handle_load_result<LoadedAssetT>(
+    fn handle_load_result<AssetT: Clone>(
         load_op: AssetLoadOp,
-        loaded_asset: VkResult<LoadedAssetT>,
-        asset_lookup: &mut AssetLookup<LoadedAssetT>,
+        loaded_asset: VkResult<AssetT>,
+        asset_lookup: &mut AssetLookup<AssetT>,
+        result_tx: Sender<AssetT>,
     ) {
         match loaded_asset {
             Ok(loaded_asset) => {
-                asset_lookup.set_uncommitted(load_op.load_handle(), loaded_asset);
+                asset_lookup.set_uncommitted(load_op.load_handle(), loaded_asset.clone());
+                result_tx.send(loaded_asset).unwrap();
                 load_op.complete()
             }
             Err(err) => {
@@ -125,23 +129,23 @@ impl GameResourceManager {
         }
     }
 
-    fn handle_commit_requests<AssetT, LoadedAssetT>(
-        load_queues: &mut LoadQueues<AssetT>,
-        asset_lookup: &mut AssetLookup<LoadedAssetT>,
+    fn handle_commit_requests<AssetDataT, AssetT>(
+        load_queues: &mut LoadQueues<AssetDataT, AssetT>,
+        asset_lookup: &mut AssetLookup<AssetT>,
     ) {
         for request in load_queues.take_commit_requests() {
             log::info!(
                 "commit asset {:?} {}",
                 request.load_handle,
-                core::any::type_name::<AssetT>()
+                core::any::type_name::<AssetDataT>()
             );
             asset_lookup.commit(request.load_handle);
         }
     }
 
-    fn handle_free_requests<AssetT, LoadedAssetT>(
-        load_queues: &mut LoadQueues<AssetT>,
-        asset_lookup: &mut AssetLookup<LoadedAssetT>,
+    fn handle_free_requests<AssetDataT, AssetT>(
+        load_queues: &mut LoadQueues<AssetDataT, AssetT>,
+        asset_lookup: &mut AssetLookup<AssetT>,
     ) {
         for request in load_queues.take_commit_requests() {
             asset_lookup.commit(request.load_handle);
@@ -151,8 +155,8 @@ impl GameResourceManager {
     fn load_mesh(
         &mut self,
         resource_manager: &ResourceManager,
-        mesh_asset: &MeshAsset,
-    ) -> VkResult<LoadedMesh> {
+        mesh_asset: &MeshAssetData,
+    ) -> VkResult<MeshAsset> {
         let vertex_buffer = resource_manager
             .loaded_assets()
             .buffers
@@ -175,18 +179,16 @@ impl GameResourceManager {
                 let material_instance_info =
                     resource_manager.get_material_instance_info(&mesh_part.material_instance);
 
-                LoadedMeshPart {
-                    material_instance: material_instance_info.descriptor_sets.clone(),
+                MeshAssetPart {
+                    material_instance: material_instance_info.descriptor_sets,
                 }
             })
             .collect();
 
-        Ok(LoadedMesh {
-            vertex_buffer,
-            index_buffer,
-            asset: mesh_asset.clone(),
-            mesh_parts,
-        })
+        let mesh_asset =
+            MeshAsset::new(mesh_parts, vertex_buffer, index_buffer, mesh_asset.clone());
+
+        Ok(mesh_asset)
     }
 }
 

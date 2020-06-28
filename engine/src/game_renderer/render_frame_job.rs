@@ -3,7 +3,7 @@ use renderer::nodes::{PrepareJobSet, FramePacket, RenderView, RenderRegistry};
 use crate::render_contexts::{
     RenderJobPrepareContext, RenderJobWriteContext, RenderJobWriteContextFactory,
 };
-use renderer::resources::resource_managers::{DynResourceAllocatorSet, PipelineSwapchainInfo};
+use renderer::assets::resources::{DynResourceAllocatorSet, PipelineSwapchainInfo};
 use renderer::vulkan::{VkDeviceContext, FrameInFlight};
 use std::sync::MutexGuard;
 use ash::prelude::VkResult;
@@ -56,7 +56,7 @@ impl RenderFrameJob {
         }
 
         let t2 = std::time::Instant::now();
-        log::info!(
+        log::trace!(
             "[async] present took {} ms",
             (t2 - t1).as_secs_f32() * 1000.0
         );
@@ -91,7 +91,7 @@ impl RenderFrameJob {
             &render_registry,
         );
         let t1 = std::time::Instant::now();
-        log::info!(
+        log::trace!(
             "[async] render prepare took {} ms",
             (t1 - t0).as_secs_f32() * 1000.0
         );
@@ -196,7 +196,7 @@ impl RenderFrameJob {
             .push(swapchain_resources.ui_renderpass.command_buffers[present_index].clone());
 
         let t2 = std::time::Instant::now();
-        log::info!(
+        log::trace!(
             "[async] render write took {} ms",
             (t2 - t1).as_secs_f32() * 1000.0
         );

@@ -1,6 +1,5 @@
-use renderer::assets::asset_resource::AssetResource;
-use renderer::resources::resource_managers::ResourceManager;
-use renderer::assets::assets::pipeline::MaterialAsset;
+use minimum::resources::AssetResource;
+use renderer::assets::resources::ResourceManager;
 use atelier_assets::loader::handle::Handle;
 use atelier_assets::core::asset_uuid;
 use atelier_assets::core::AssetUuid;
@@ -8,6 +7,7 @@ use atelier_assets::loader::LoadStatus;
 use atelier_assets::core as atelier_core;
 use ash::prelude::VkResult;
 use atelier_assets::loader::handle::AssetHandle;
+use renderer::assets::MaterialAsset;
 
 fn begin_load_asset<T>(
     asset_uuid: AssetUuid,

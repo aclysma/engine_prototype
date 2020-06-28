@@ -5,12 +5,12 @@ use renderer::nodes::{
 };
 use crate::features::imgui::prepare::ImGuiPrepareJobImpl;
 use renderer::vulkan::VkDeviceContext;
-use renderer::resources::resource_managers::{PipelineSwapchainInfo, DescriptorSetAllocatorRef};
-use renderer::assets::assets::pipeline::MaterialAsset;
+use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetAllocatorRef};
 use atelier_assets::loader::handle::Handle;
 use crate::imgui_support::Sdl2ImguiManager;
 use ash::vk::Extent2D;
-use renderer::resources::{ImageViewResource, ResourceArc};
+use renderer::assets::{ImageViewResource, ResourceArc};
+use renderer::assets::MaterialAsset;
 
 // This is almost copy-pasted from glam. I wanted to avoid pulling in the entire library for a
 // single function

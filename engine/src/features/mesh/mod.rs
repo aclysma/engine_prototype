@@ -17,10 +17,10 @@ mod prepare;
 mod write;
 use write::MeshCommandWriter;
 use renderer::vulkan::VkBufferRaw;
-use renderer::resources::resource_managers::{
+use renderer::assets::resources::{
     PipelineSwapchainInfo, DescriptorSetArc, DescriptorSetAllocatorRef, ResourceArc,
 };
-use renderer::assets::assets::pipeline::MaterialAsset;
+use renderer::assets::MaterialAsset;
 
 // Represents the data uploaded to the GPU to represent a single point light
 #[derive(Default, Copy, Clone)]

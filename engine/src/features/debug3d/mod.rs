@@ -3,13 +3,13 @@ use atelier_assets::loader::handle::Handle;
 use std::sync::atomic::{AtomicI32, Ordering};
 use crate::features::debug3d::extract::Debug3dExtractJobImpl;
 use renderer::vulkan::VkDeviceContext;
-use renderer::resources::DescriptorSetAllocatorRef;
-use renderer::resources::PipelineSwapchainInfo;
-use renderer::assets::MaterialAsset;
+use renderer::assets::DescriptorSetAllocatorRef;
+use renderer::assets::PipelineSwapchainInfo;
 use renderer::nodes::ExtractJob;
 use renderer::nodes::RenderFeature;
 use renderer::nodes::RenderFeatureIndex;
 use std::convert::TryInto;
+use renderer::assets::MaterialAsset;
 
 mod extract;
 mod prepare;

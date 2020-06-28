@@ -11,6 +11,7 @@ edition = "2018"
 renderer = { path = "../renderer/renderer" }
 renderer-shell-vulkan-sdl2 = { path = "../renderer/renderer-shell-vulkan-sdl2" }
 minimum = { git = "https://github.com/aclysma/minimum.git" }
+minimum-sdl2 = { git = "https://github.com/aclysma/minimum.git" }
 
 ash = ">0.30"
 imgui = "0.3"

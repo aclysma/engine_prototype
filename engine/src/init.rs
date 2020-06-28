@@ -1,4 +1,3 @@
-use renderer::assets::asset_resource::AssetResource;
 use legion::prelude::Resources;
 use renderer::vulkan::{
     LogicalSize, VkContextBuilder, MsaaLevel, VkDeviceContext, VkSurface, VkContext,
@@ -10,40 +9,24 @@ use renderer_shell_vulkan_sdl2::Sdl2Window;
 use crate::game_renderer::{SwapchainLifetimeListener, GameRenderer};
 use crate::features::debug3d::{DebugDraw3DResource, Debug3dRenderFeature};
 use renderer::nodes::RenderRegistry;
-use crate::assets::gltf::{MeshAsset, GltfMaterialAsset};
-use crate::resource_manager::GameResourceManager;
-use renderer::resources::ResourceManager;
+use crate::assets::gltf::{GltfMaterialAsset, MeshAssetData};
+
+use crate::game_resource_manager::GameResourceManager;
+use renderer::assets::ResourceManager;
 use crate::phases::{OpaqueRenderPhase, UiRenderPhase};
 use crate::phases::TransparentRenderPhase;
 use crate::features::imgui::ImGuiRenderFeature;
-
-pub fn logging_init() {
-    #[allow(unused_assignments)]
-    let mut log_level = log::LevelFilter::Info;
-    //#[cfg(debug_assertions)]
-    {
-        log_level = log::LevelFilter::Debug;
-    }
-
-    // Setup logging
-    env_logger::Builder::from_default_env()
-        .default_format_timestamp_nanos(true)
-        .filter_module(
-            "renderer_resources::resource_managers::descriptor_sets",
-            log::LevelFilter::Info,
-        )
-        .filter_module("renderer_base", log::LevelFilter::Info)
-        .filter_level(log_level)
-        // .format(|buf, record| { //TODO: Get a frame count in here
-        //     writeln!(buf,
-        //              "{} [{}] - {}",
-        //              chrono::Local::now().format("%Y-%m-%dT%H:%M:%S"),
-        //              record.level(),
-        //              record.args()
-        //     )
-        // })
-        .init();
-}
+use minimum::resources::AssetResource;
+use renderer::assets::{
+    ShaderAsset, PipelineAsset, RenderpassAsset, MaterialAsset, MaterialInstanceAsset, ImageAsset,
+    BufferAsset,
+};
+use renderer::assets::{
+    ShaderAssetData, PipelineAssetData, RenderpassAssetData, MaterialAssetData,
+    MaterialInstanceAssetData, ImageAssetData, BufferAssetData,
+};
+use crate::assets::gltf::MeshAsset;
+use crate::asset_loader::ResourceAssetLoader;
 
 pub fn atelier_init(resources: &mut Resources) {
     resources.insert(AssetResource::default());
@@ -70,11 +53,7 @@ pub fn sdl2_init() -> Sdl2Systems {
 
     // Create the window
     let window = video_subsystem
-        .window(
-            "Renderer Prototype",
-            logical_size.width,
-            logical_size.height,
-        )
+        .window("Engine Prototype", logical_size.width, logical_size.height)
         .position_centered()
         .allow_highdpi()
         .resizable()
@@ -126,10 +105,36 @@ pub fn rendering_init(
 
     let vk_context = context.build(&window_wrapper).unwrap();
     let device_context = vk_context.device_context().clone();
-    let resource_manager = {
-        let mut asset_resourceh = resources.get_mut::<AssetResource>().unwrap();
-        renderer::resources::create_resource_manager(&device_context, &mut *asset_resourceh)
-    };
+    let resource_manager = renderer::assets::ResourceManager::new(&device_context);
+
+    {
+        let loaders = resource_manager.create_loaders();
+        let mut asset_resource = resources.get_mut::<AssetResource>().unwrap();
+
+        asset_resource.add_storage_with_loader::<ShaderAssetData, ShaderAsset, _>(Box::new(
+            ResourceAssetLoader(loaders.shader_loader),
+        ));
+        asset_resource.add_storage_with_loader::<PipelineAssetData, PipelineAsset, _>(Box::new(
+            ResourceAssetLoader(loaders.pipeline_loader),
+        ));
+        asset_resource.add_storage_with_loader::<RenderpassAssetData, RenderpassAsset, _>(
+            Box::new(ResourceAssetLoader(loaders.renderpass_loader)),
+        );
+        asset_resource.add_storage_with_loader::<MaterialAssetData, MaterialAsset, _>(Box::new(
+            ResourceAssetLoader(loaders.material_loader),
+        ));
+        asset_resource
+            .add_storage_with_loader::<MaterialInstanceAssetData, MaterialInstanceAsset, _>(
+                Box::new(ResourceAssetLoader(loaders.material_instance_loader)),
+            );
+        asset_resource.add_storage_with_loader::<ImageAssetData, ImageAsset, _>(Box::new(
+            ResourceAssetLoader(loaders.image_loader),
+        ));
+        asset_resource.add_storage_with_loader::<BufferAssetData, BufferAsset, _>(Box::new(
+            ResourceAssetLoader(loaders.buffer_loader),
+        ));
+    }
+
     resources.insert(vk_context);
     resources.insert(device_context);
     resources.insert(resource_manager);
@@ -147,8 +152,8 @@ pub fn rendering_init(
         let mut resource_manager_fetch = resources.get_mut::<GameResourceManager>().unwrap();
         let resource_manager = &mut *resource_manager_fetch;
 
-        asset_resource.add_storage_with_load_handler::<MeshAsset, _>(Box::new(
-            resource_manager.create_mesh_load_handler(),
+        asset_resource.add_storage_with_loader::<MeshAssetData, MeshAsset, _>(Box::new(
+            ResourceAssetLoader(resource_manager.create_mesh_loader()),
         ));
 
         asset_resource.add_storage::<GltfMaterialAsset>();
@@ -187,6 +192,10 @@ pub fn rendering_destroy(resources: &mut Resources) {
         resources.remove::<DebugDraw3DResource>();
         resources.remove::<GameResourceManager>();
         resources.remove::<RenderRegistry>();
+
+        // Remove the asset resource because we have asset storages that reference resources
+        resources.remove::<AssetResource>();
+
         resources.remove::<ResourceManager>();
     }
 

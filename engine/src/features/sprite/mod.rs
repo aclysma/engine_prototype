@@ -8,6 +8,7 @@ use legion::prelude::Entity;
 use renderer::base::slab::{RawSlabKey, RawSlab};
 use std::convert::TryInto;
 use atelier_assets::loader::handle::Handle;
+use renderer::assets::MaterialAsset;
 
 mod extract;
 use extract::SpriteExtractJobImpl;
@@ -17,10 +18,7 @@ mod prepare;
 mod write;
 use write::SpriteCommandWriter;
 use renderer::vulkan::VkDeviceContext;
-use renderer::resources::resource_managers::{
-    PipelineSwapchainInfo, DescriptorSetArc, DescriptorSetAllocatorRef,
-};
-use renderer::assets::assets::pipeline::MaterialAsset;
+use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetArc, DescriptorSetAllocatorRef};
 
 /// Per-pass "global" data
 #[derive(Clone, Debug, Copy)]
