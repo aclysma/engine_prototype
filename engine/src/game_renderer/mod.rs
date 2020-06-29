@@ -3,7 +3,7 @@ use renderer::vulkan::{VkSurface, Window, VkDeviceContext, VkContext, FrameInFli
 use ash::prelude::VkResult;
 use std::mem::ManuallyDrop;
 use ash::vk;
-use minimum::resources::{AssetResource, TimeState};
+use minimum::resources::{AssetResource, TimeResource};
 use renderer::assets::resources::{ResourceManager, ResourceArc, ImageViewResource};
 use crate::features::debug3d::create_debug3d_extract_job;
 use crate::features::sprite::{SpriteRenderNodeSet, create_sprite_extract_job};
@@ -260,8 +260,8 @@ impl GameRenderer {
         // Fetch resources
         //
 
-        let time_state_fetch = resources.get::<TimeState>().unwrap();
-        let time_state = &*time_state_fetch;
+        let time_state_fetch = resources.get::<TimeResource>().unwrap();
+        let time_resource = &*time_state_fetch;
 
         let static_visibility_node_set_fetch = resources.get::<StaticVisibilityNodeSet>().unwrap();
         let static_visibility_node_set = &*static_visibility_node_set_fetch;
@@ -294,7 +294,7 @@ impl GameRenderer {
         //
         let camera_rotate_speed = 1.0;
         let camera_distance_multiplier = 1.0;
-        let loop_time = time_state.total_time().as_secs_f32();
+        let loop_time = time_resource.simulation_time.total_time().as_secs_f32();
         let eye = glam::Vec3::new(
             camera_distance_multiplier * 8.0 * f32::cos(camera_rotate_speed * loop_time / 2.0),
             camera_distance_multiplier * 8.0 * f32::sin(camera_rotate_speed * loop_time / 2.0),

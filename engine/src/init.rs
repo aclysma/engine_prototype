@@ -16,7 +16,7 @@ use renderer::assets::ResourceManager;
 use crate::phases::{OpaqueRenderPhase, UiRenderPhase};
 use crate::phases::TransparentRenderPhase;
 use crate::features::imgui::ImGuiRenderFeature;
-use minimum::resources::AssetResource;
+use minimum::resources::{AssetResource, ImguiResource};
 use renderer::assets::{
     ShaderAsset, PipelineAsset, RenderpassAsset, MaterialAsset, MaterialInstanceAsset, ImageAsset,
     BufferAsset,
@@ -27,7 +27,6 @@ use renderer::assets::{
 };
 use crate::assets::gltf::MeshAsset;
 use crate::asset_loader::ResourceAssetLoader;
-use minimum::pipeline::PrefabAsset;
 
 pub struct Sdl2Systems {
     pub context: sdl2::Sdl,
@@ -70,7 +69,9 @@ pub fn rendering_init(
     sdl2_window: &sdl2::video::Window,
 ) {
     // Set up imgui
-    resources.insert(minimum_sdl2::imgui::init_imgui_manager(sdl2_window));
+    let sdl2_imgui_manager = minimum_sdl2::imgui::init_imgui_manager(sdl2_window);
+    resources.insert(ImguiResource::new(sdl2_imgui_manager.imgui_manager()));
+    resources.insert(sdl2_imgui_manager);
 
     resources.insert(SpriteRenderNodeSet::default());
     resources.insert(MeshRenderNodeSet::default());

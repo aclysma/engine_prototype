@@ -7,6 +7,7 @@ use minimum::editor::EditorInspectRegistry;
 use minimum::editor::EditorInspectRegistryBuilder;
 
 use minimum::ComponentRegistry;
+use minimum::resources::editor::Keybinds;
 
 /// Create the asset manager that has all the required types registered
 pub fn create_asset_resource() -> AssetResource {
@@ -45,4 +46,19 @@ pub fn create_editor_inspector_registry() -> EditorInspectRegistry {
         // .register::<RigidBodyBallComponentDef>()
         // .register::<RigidBodyBoxComponentDef>()
         .build()
+}
+
+pub fn create_editor_keybinds() -> Keybinds {
+    use minimum_sdl2::input::Sdl2KeyboardKey;
+    use sdl2::keyboard::Keycode;
+    Keybinds {
+        selection_add: Sdl2KeyboardKey::new(Keycode::LShift).into(),
+        selection_subtract: Sdl2KeyboardKey::new(Keycode::LAlt).into(),
+        selection_toggle: Sdl2KeyboardKey::new(Keycode::LCtrl).into(),
+        tool_translate: Sdl2KeyboardKey::new(Keycode::Num1).into(),
+        tool_scale: Sdl2KeyboardKey::new(Keycode::Num2).into(),
+        tool_rotate: Sdl2KeyboardKey::new(Keycode::Num3).into(),
+        action_quit: Sdl2KeyboardKey::new(Keycode::Escape).into(),
+        action_toggle_editor_pause: Sdl2KeyboardKey::new(Keycode::Space).into(),
+    }
 }

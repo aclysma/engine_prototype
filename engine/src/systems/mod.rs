@@ -1,11 +1,20 @@
 mod app_control_systems;
 pub use app_control_systems::quit_if_escape_pressed;
 
+mod update_resource_manager;
+pub use update_resource_manager::update_resource_manager;
+
+mod add_light_debug_draw;
+pub use add_light_debug_draw::add_light_debug_draw;
+
 use minimum::systems::*;
 
 use legion::prelude::*;
 
 use minimum::editor::resources::EditorMode;
+use fnv::FnvHashMap;
+use minimum::resources::TimeResource;
+use minimum::resources::editor::EditorStateResource;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ScheduleCriteria {
@@ -95,41 +104,97 @@ impl<'a> ScheduleBuilder<'a> {
     }
 }
 
-pub fn create_update_schedule(criteria: &ScheduleCriteria) -> Schedule {
-    use minimum::editor::systems::*;
-
-    ScheduleBuilder::new(criteria)
-        .always(update_input_resource)
-        .always(advance_time)
-        .always(quit_if_escape_pressed)
-        .always(update_asset_manager)
-        //.always(update_fps_text)
-        //.always(update_physics)
-        //.simulation_unpaused_only(read_from_physics)
-        // --- Editor stuff here ---
-        // Prepare to handle editor input
-        .always_thread_local(editor_refresh_selection_world)
-        // Editor input
-        .always_thread_local(reload_editor_state_if_file_changed)
-        .always(editor_keybinds)
-        .always(editor_mouse_input)
-        .always(editor_update_editor_draw)
-        .always(editor_gizmos)
-        .always(editor_handle_selection)
-        .always(editor_imgui_menu)
-        .always(editor_entity_list_window)
-        .always_thread_local(editor_inspector_window)
-        // Editor processing
-        .always_thread_local(editor_process_edit_diffs)
-        .always_thread_local(editor_process_selection_ops)
-        .always_thread_local(editor_process_editor_ops)
-        // Editor output
-        .always(draw_selection_shapes)
-        // --- End editor stuff ---
-        .always(input_reset_for_next_frame)
-        .build()
-}
-
 // pub fn create_draw_schedule(criteria: &ScheduleCriteria) -> Schedule {
 //     ScheduleBuilder::new(criteria).always(draw).build()
 // }
+
+pub struct ScheduleManager {
+    update_schedules: FnvHashMap<ScheduleCriteria, Schedule>,
+}
+
+impl ScheduleManager {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        // The expected states for which we will generate schedules
+        let expected_criteria = Self::create_schedule_criteria();
+
+        // Populate a lookup for the schedules.. on each update/draw, we will check the current
+        // state of the application, create an appropriate ScheduleCriteria, and use it to look
+        // up the correct schedule to run
+        let mut update_schedules = FnvHashMap::default();
+
+        for criteria in &expected_criteria {
+            update_schedules.insert(criteria.clone(), Self::create_update_schedule(&criteria));
+        }
+
+        ScheduleManager { update_schedules }
+    }
+
+    pub fn update(
+        &mut self,
+        world: &mut World,
+        resources: &mut Resources,
+    ) {
+        let current_criteria = Self::get_current_schedule_criteria(resources);
+        let schedule = self.update_schedules.get_mut(&current_criteria).unwrap();
+        schedule.execute(world, resources);
+    }
+
+    // Determine the current state of the game
+    fn get_current_schedule_criteria(resources: &Resources) -> ScheduleCriteria {
+        ScheduleCriteria::new(
+            resources
+                .get::<TimeResource>()
+                .unwrap()
+                .is_simulation_paused(),
+            resources
+                .get::<EditorStateResource>()
+                .unwrap()
+                .editor_mode(),
+        )
+    }
+
+    fn create_schedule_criteria() -> Vec<ScheduleCriteria> {
+        vec![
+            ScheduleCriteria::new(false, EditorMode::Inactive),
+            ScheduleCriteria::new(true, EditorMode::Active),
+        ]
+    }
+
+    fn create_update_schedule(criteria: &ScheduleCriteria) -> Schedule {
+        use minimum::editor::systems::*;
+
+        ScheduleBuilder::new(criteria)
+            .always(update_input_resource)
+            .always(advance_time)
+            .always(quit_if_escape_pressed)
+            .always(update_asset_manager)
+            .always(update_resource_manager)
+            .always(add_light_debug_draw)
+            //.always(update_fps_text)
+            //.always(update_physics)
+            //.simulation_unpaused_only(read_from_physics)
+            // --- Editor stuff here ---
+            // Prepare to handle editor input
+            .always_thread_local(editor_refresh_selection_world)
+            // Editor input
+            .always_thread_local(reload_editor_state_if_file_changed)
+            .always(editor_keybinds)
+            .always(editor_mouse_input)
+            .always(editor_update_editor_draw)
+            .always(editor_gizmos)
+            .always(editor_handle_selection)
+            .always(editor_imgui_menu)
+            .always(editor_entity_list_window)
+            .always_thread_local(editor_inspector_window)
+            // Editor processing
+            .always_thread_local(editor_process_edit_diffs)
+            .always_thread_local(editor_process_selection_ops)
+            .always_thread_local(editor_process_editor_ops)
+            // Editor output
+            .always(draw_selection_shapes) //TODO: Requires pushing 3d debug draw down
+            // --- End editor stuff ---
+            .always(input_reset_for_next_frame)
+            .build()
+    }
+}
