@@ -27,10 +27,7 @@ use renderer::assets::{
 };
 use crate::assets::gltf::MeshAsset;
 use crate::asset_loader::ResourceAssetLoader;
-
-pub fn atelier_init(resources: &mut Resources) {
-    resources.insert(AssetResource::default());
-}
+use minimum::pipeline::PrefabAsset;
 
 pub struct Sdl2Systems {
     pub context: sdl2::Sdl,
@@ -68,23 +65,12 @@ pub fn sdl2_init() -> Sdl2Systems {
     }
 }
 
-// Should occur *before* the renderer starts
-pub fn imgui_init(
-    resources: &mut Resources,
-    sdl2_window: &sdl2::video::Window,
-) {
-    // Load imgui, we do it a little early because it wants to have the actual SDL2 window and
-    // doesn't work with the thin window wrapper
-    let imgui_manager = crate::imgui_support::init_imgui_manager(sdl2_window);
-    resources.insert(imgui_manager);
-}
-
 pub fn rendering_init(
     resources: &mut Resources,
     sdl2_window: &sdl2::video::Window,
 ) {
-    // Thin window wrapper to decouple the renderer from a specific windowing crate
-    let window_wrapper = Sdl2Window::new(&sdl2_window);
+    // Set up imgui
+    resources.insert(minimum_sdl2::imgui::init_imgui_manager(sdl2_window));
 
     resources.insert(SpriteRenderNodeSet::default());
     resources.insert(MeshRenderNodeSet::default());
@@ -103,9 +89,12 @@ pub fn rendering_init(
         context = context.use_vulkan_debug_layer(true);
     }
 
+    // Thin window wrapper to decouple the renderer from a specific windowing crate
+    let window_wrapper = Sdl2Window::new(&sdl2_window);
     let vk_context = context.build(&window_wrapper).unwrap();
     let device_context = vk_context.device_context().clone();
     let resource_manager = renderer::assets::ResourceManager::new(&device_context);
+    let game_resource_manager = GameResourceManager::new();
 
     {
         let loaders = resource_manager.create_loaders();
@@ -133,31 +122,17 @@ pub fn rendering_init(
         asset_resource.add_storage_with_loader::<BufferAssetData, BufferAsset, _>(Box::new(
             ResourceAssetLoader(loaders.buffer_loader),
         ));
+
+        asset_resource.add_storage_with_loader::<MeshAssetData, MeshAsset, _>(Box::new(
+            ResourceAssetLoader(game_resource_manager.create_mesh_loader()),
+        ));
+        asset_resource.add_storage::<GltfMaterialAsset>();
     }
 
     resources.insert(vk_context);
     resources.insert(device_context);
     resources.insert(resource_manager);
-
-    {
-        //
-        // Create the game resource manager
-        //
-        let resource_manager = GameResourceManager::new();
-        resources.insert(resource_manager);
-
-        let mut asset_resource_fetch = resources.get_mut::<AssetResource>().unwrap();
-        let asset_resource = &mut *asset_resource_fetch;
-
-        let mut resource_manager_fetch = resources.get_mut::<GameResourceManager>().unwrap();
-        let resource_manager = &mut *resource_manager_fetch;
-
-        asset_resource.add_storage_with_loader::<MeshAssetData, MeshAsset, _>(Box::new(
-            ResourceAssetLoader(resource_manager.create_mesh_loader()),
-        ));
-
-        asset_resource.add_storage::<GltfMaterialAsset>();
-    }
+    resources.insert(game_resource_manager);
 
     let render_registry = renderer::nodes::RenderRegistryBuilder::default()
         .register_feature::<SpriteRenderFeature>()
@@ -192,9 +167,6 @@ pub fn rendering_destroy(resources: &mut Resources) {
         resources.remove::<DebugDraw3DResource>();
         resources.remove::<GameResourceManager>();
         resources.remove::<RenderRegistry>();
-
-        // Remove the asset resource because we have asset storages that reference resources
-        resources.remove::<AssetResource>();
 
         resources.remove::<ResourceManager>();
     }

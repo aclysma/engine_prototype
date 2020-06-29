@@ -10,7 +10,7 @@ use renderer::vulkan::{VkBuffer, VkDeviceContext};
 use ash::vk;
 use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetArc};
 
-pub struct ImGuiPrepareJobImpl {
+pub struct ImguiPrepareJobImpl {
     device_context: VkDeviceContext,
     pipeline_info: PipelineSwapchainInfo,
     dyn_resource_allocator: renderer::assets::DynResourceAllocatorSet,
@@ -19,7 +19,7 @@ pub struct ImGuiPrepareJobImpl {
     extracted_imgui_data: ExtractedImGuiData,
 }
 
-impl ImGuiPrepareJobImpl {
+impl ImguiPrepareJobImpl {
     pub(super) fn new(
         device_context: VkDeviceContext,
         pipeline_info: PipelineSwapchainInfo,
@@ -28,7 +28,7 @@ impl ImGuiPrepareJobImpl {
         per_image_descriptor_sets: Vec<DescriptorSetArc>,
         extracted_imgui_data: ExtractedImGuiData,
     ) -> Self {
-        ImGuiPrepareJobImpl {
+        ImguiPrepareJobImpl {
             device_context,
             pipeline_info,
             dyn_resource_allocator,
@@ -39,7 +39,7 @@ impl ImGuiPrepareJobImpl {
     }
 }
 
-impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for ImGuiPrepareJobImpl {
+impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for ImguiPrepareJobImpl {
     fn prepare(
         self: Box<Self>,
         _prepare_context: &RenderJobPrepareContext,

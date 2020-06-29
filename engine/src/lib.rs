@@ -21,9 +21,7 @@ mod systems;
 
 mod registration;
 
-//TODO: Merge these
-//use minimum_sdl2::imgui::Sdl2ImguiManager;
-use crate::imgui_support::Sdl2ImguiManager;
+use minimum_sdl2::imgui::Sdl2ImguiManager;
 
 use renderer::vulkan::VkDeviceContext;
 use renderer_shell_vulkan_sdl2::Sdl2Window;
@@ -35,6 +33,7 @@ use renderer::assets::ResourceManager;
 use crate::game_renderer::GameRenderer;
 use crate::features::debug3d::DebugDraw3DResource;
 use crate::game_resource_manager::GameResourceManager;
+use minimum::resources::editor::EditorInspectRegistryResource;
 
 mod asset_loader;
 mod assets;
@@ -46,7 +45,6 @@ mod game_resource_manager;
 mod components;
 mod game_asset_lookup;
 mod renderpass;
-mod imgui_support;
 mod phases;
 mod render_contexts;
 
@@ -57,11 +55,18 @@ struct ImGuiInspectTest {
 pub fn run() {
     let mut resources = Resources::default();
     resources.insert(TimeState::new());
+    resources.insert(registration::create_asset_resource());
 
-    init::atelier_init(&mut resources);
+    resources.insert(EditorInspectRegistryResource::new(
+        registration::create_editor_inspector_registry(),
+    ));
+    resources.insert(ComponentRegistryResource::new(
+        registration::create_component_registry(),
+    ));
 
     let sdl2_systems = init::sdl2_init();
-    init::imgui_init(&mut resources, &sdl2_systems.window);
+
+    // This will register more rendering-specific asset types
     init::rendering_init(&mut resources, &sdl2_systems.window);
 
     log::info!("Starting window event loop");
@@ -72,6 +77,7 @@ pub fn run() {
 
     let universe = Universe::new();
     let mut world = universe.create_world();
+    resources.insert(UniverseResource::new(universe));
 
     test_scene::populate_test_sprite_entities(&mut resources, &mut world);
     test_scene::populate_test_mesh_entities(&mut resources, &mut world);
@@ -169,7 +175,7 @@ pub fn run() {
         }
 
         let t1 = std::time::Instant::now();
-        log::info!(
+        log::trace!(
             "[main] simulation took {} ms",
             (t1 - t0).as_secs_f32() * 1000.0
         );
@@ -189,12 +195,44 @@ pub fn run() {
         //log::info!("main thread took {} ms", (t2 - t0).as_secs_f32() * 1000.0);
     }
 
+    // Remove the asset resource because we have asset storages that reference resources
+    resources.remove::<AssetResource>();
+
+    // Tear down rendering
     init::rendering_destroy(&mut resources);
 
     // Drop world before resources as physics components may point back at resources
     std::mem::drop(world);
     std::mem::drop(resources);
 }
+
+//TODO:
+// * Init these resources
+// ( ) CameraResource - Cameras should be components, not resources
+// ( ) Sdl2WindowResource - Unnecessary
+// ( ) ViewportResource - Populate with camera data (YES INIT IT PROBABLY?)
+// ( ) DebugDrawResource - Rename to debugdraw 2d?
+// ( ) EditorDrawResource - Implemented in 2d
+// ( ) EditorSelectionResource - Should I even bother with these?
+// (X) EditorInspectRegistryResource - YES, INIT IT
+// (X) ComponentRegistryResource - YES, INIT IT
+// ( ) Sdl2ImguiManagerResource- PROBABLY
+// ( ) ImguiResource - PROBABLY
+// ( ) AppControlResource - YES, but should this just be a message channel?
+// ( ) TimeResource - DONE
+// ( ) InputResource _ YES, INIT IT
+// ( ) CanvasDrawResource - no
+// ( ) UniverseResource - YES, INIT IT
+// ( ) Sdl2WindowResource - no
+// ( ) EditorStateResource - PROBABALY FOR NOW
+// ( ) EditorSettingsResource - PROBABLY FOR NOW
+//
+// * Tick existing systems
+// * Port current update code into systems
+// * Check debug draw/editor draw are ok
+// * 3D debug draw?
+// * Load a scene
+
 /*
 fn create_resources(
     universe: Universe,

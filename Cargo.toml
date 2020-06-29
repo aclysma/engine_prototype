@@ -32,6 +32,8 @@ opt-level = 2
 
 [patch."https://github.com/aclysma/minimum"]
 minimum = { path = "minimum/minimum" }
+minimum-sdl2 = { path = "minimum/contrib/minimum-sdl2" }
+
 
 #[patch."https://github.com/aclysma/renderer_prototype"]
 #renderer = { path = "renderer/renderer" }

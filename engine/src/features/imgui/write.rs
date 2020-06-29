@@ -7,12 +7,12 @@ use renderer::vulkan::VkBufferRaw;
 use renderer::assets::resources::{ResourceArc, PipelineSwapchainInfo, DescriptorSetArc};
 use ash::vk;
 use ash::version::DeviceV1_0;
-use crate::imgui_support::{ImGuiDrawData, ImGuiDrawCmd};
+use minimum::game::imgui::{ImguiDrawData, ImguiDrawCmd};
 
 pub struct ImGuiCommandWriter {
     pub(super) vertex_buffers: Vec<ResourceArc<VkBufferRaw>>,
     pub(super) index_buffers: Vec<ResourceArc<VkBufferRaw>>,
-    pub(super) imgui_draw_data: Option<ImGuiDrawData>,
+    pub(super) imgui_draw_data: Option<ImguiDrawData>,
     pub(super) pipeline_info: PipelineSwapchainInfo,
     pub(super) per_pass_descriptor_set: DescriptorSetArc,
     pub(super) per_image_descriptor_sets: Vec<DescriptorSetArc>,
@@ -84,7 +84,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for ImGuiCommandWriter {
                         let mut element_begin_index: u32 = 0;
                         for cmd in draw_list.commands() {
                             match cmd {
-                                ImGuiDrawCmd::Elements {
+                                ImguiDrawCmd::Elements {
                                     count,
                                     cmd_params:
                                         imgui::DrawCmdParams {

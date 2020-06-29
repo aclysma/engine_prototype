@@ -1,4 +1,4 @@
-use crate::imgui_support::Sdl2ImguiManager;
+use minimum_sdl2::imgui::Sdl2ImguiManager;
 use renderer::vulkan::{VkSurface, Window, VkDeviceContext, VkContext, FrameInFlight};
 use ash::prelude::VkResult;
 use std::mem::ManuallyDrop;

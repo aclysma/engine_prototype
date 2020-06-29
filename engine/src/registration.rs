@@ -9,7 +9,7 @@ use minimum::editor::EditorInspectRegistryBuilder;
 use minimum::ComponentRegistry;
 
 /// Create the asset manager that has all the required types registered
-pub fn create_asset_manager() -> AssetResource {
+pub fn create_asset_resource() -> AssetResource {
     let mut asset_manager = AssetResource::default();
     asset_manager.add_storage::<minimum::pipeline::PrefabAsset>();
     asset_manager

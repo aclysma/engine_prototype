@@ -12,6 +12,7 @@ impl LineList3D {
     }
 }
 
+#[derive(Default)]
 pub struct DebugDraw3DResource {
     line_lists: Vec<LineList3D>,
 }

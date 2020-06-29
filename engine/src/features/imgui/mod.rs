@@ -9,7 +9,7 @@ use renderer::nodes::ExtractJob;
 use renderer::nodes::RenderFeature;
 use renderer::nodes::RenderFeatureIndex;
 use std::convert::TryInto;
-use crate::imgui_support::ImGuiDrawData;
+use minimum::game::imgui::ImguiDrawData;
 use ash::vk::Extent2D;
 use renderer::assets::{ImageViewResource, ResourceArc};
 use renderer::assets::MaterialAsset;
@@ -73,7 +73,7 @@ impl RenderFeature for ImGuiRenderFeature {
 }
 
 pub(self) struct ExtractedImGuiData {
-    imgui_draw_data: Option<ImGuiDrawData>,
+    imgui_draw_data: Option<ImguiDrawData>,
 }
 
 #[derive(Debug)]

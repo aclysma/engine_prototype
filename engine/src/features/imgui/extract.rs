@@ -3,11 +3,11 @@ use crate::render_contexts::{RenderJobExtractContext, RenderJobWriteContext, Ren
 use renderer::nodes::{
     FramePacket, RenderView, PrepareJob, RenderFeatureIndex, RenderFeature, ExtractJob,
 };
-use crate::features::imgui::prepare::ImGuiPrepareJobImpl;
+use crate::features::imgui::prepare::ImguiPrepareJobImpl;
 use renderer::vulkan::VkDeviceContext;
 use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetAllocatorRef};
 use atelier_assets::loader::handle::Handle;
-use crate::imgui_support::Sdl2ImguiManager;
+use minimum_sdl2::imgui::Sdl2ImguiManager;
 use ash::vk::Extent2D;
 use renderer::assets::{ImageViewResource, ResourceArc};
 use renderer::assets::MaterialAsset;
@@ -130,7 +130,7 @@ impl ExtractJob<RenderJobExtractContext, RenderJobPrepareContext, RenderJobWrite
         let per_pass_descriptor_set = per_pass_descriptor_set.descriptor_set().clone();
         let per_image_descriptor_sets = vec![per_image_descriptor_set.descriptor_set().clone()];
 
-        Box::new(ImGuiPrepareJobImpl::new(
+        Box::new(ImguiPrepareJobImpl::new(
             self.device_context,
             self.pipeline_info,
             dyn_resource_allocator,
