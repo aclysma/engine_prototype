@@ -37,7 +37,7 @@ pub fn populate_test_sprite_entities(
     };
 
     let sprites = ["sprite1", "sprite2", "sprite3"];
-    for i in 0..1000 {
+    for i in 0..1 {
         let position = Vec3::new(((i / 10) * 25) as f32, ((i % 10) * 25) as f32, 0.0);
         //let alpha = if i % 7 == 0 { 0.50 } else { 1.0 };
         let alpha = 1.0;
@@ -100,7 +100,7 @@ pub fn populate_test_mesh_entities(
         )
     };
 
-    for i in 0..100 {
+    for i in 0..1 {
         let position = Vec3::new(((i / 10) * 3) as f32, ((i % 10) * 3) as f32, 0.0);
 
         let mut mesh_render_nodes = resources.get_mut::<MeshRenderNodeSet>().unwrap();
@@ -133,10 +133,7 @@ pub fn populate_test_mesh_entities(
                 mesh: mesh.clone(),
             };
 
-            let entity = world.insert(
-                (),
-                (0..1).map(|_| (position_component, mesh_component.clone())),
-            )[0];
+            let entity = world.insert((), vec![(position_component, mesh_component)])[0];
 
             world.get_component::<PositionComponent>(entity).unwrap();
 

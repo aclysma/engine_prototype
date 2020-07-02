@@ -28,13 +28,14 @@ use crate::components::{
 };
 
 use crate::game_renderer::GameRenderer;
-use crate::features::debug3d::DebugDraw3DResource;
 use minimum::resources::editor::{
     EditorInspectRegistryResource, EditorMode, EditorStateResource, EditorSelectionResource,
-    EditorSettingsResource, EditorDrawResource,
+    EditorSettingsResource, EditorDraw3DResource,
 };
 use crate::systems::{ScheduleCriteria, ScheduleManager};
 use fnv::FnvHashMap;
+use atelier_assets::core as atelier_core;
+use atelier_assets::core::asset_uuid;
 
 mod asset_loader;
 mod assets;
@@ -60,8 +61,8 @@ pub fn run() {
     resources.insert(TimeResource::new());
     resources.insert(InputResource::new());
     resources.insert(EditorStateResource::new());
-    resources.insert(DebugDrawResource::new());
-    resources.insert(EditorDrawResource::new());
+    resources.insert(DebugDraw3DResource::new());
+    resources.insert(EditorDraw3DResource::new());
     resources.insert(EditorSettingsResource::new(
         registration::create_editor_keybinds(),
     ));
@@ -77,10 +78,15 @@ pub fn run() {
 
     let sdl2_systems = init::sdl2_init();
     let window_size = sdl2_systems.window.drawable_size();
-    let viewport_size = ViewportSize::new(window_size.0, window_size.1);
+    //let viewport_size = ViewportSize::new(window_size.0, window_size.1);
 
     let camera = CameraResource::new(glam::Vec2::new(0.0, 1.0), 10.0);
-    let viewport = ViewportResource::new(viewport_size, camera.position, camera.x_half_extents);
+    //let viewport = ViewportResource::new(viewport_size, camera.position, camera.x_half_extents);
+    let mut viewport = ViewportResource::empty();
+    viewport.set_ui_space_view(glam::Mat4::identity());
+    viewport.set_screen_space_view(glam::Mat4::identity(), glam::Vec2::new(window_size.0 as f32, window_size.1 as f32));
+    viewport.set_world_space_view(glam::Mat4::identity());
+
 
     resources.insert(camera);
     resources.insert(viewport);
@@ -98,15 +104,17 @@ pub fn run() {
     let mut world = universe.create_world();
     resources.insert(UniverseResource::new(universe));
 
-    test_scene::populate_test_sprite_entities(&mut resources, &mut world);
-    test_scene::populate_test_mesh_entities(&mut resources, &mut world);
-    test_scene::populate_test_lights(&mut resources, &mut world);
+    // test_scene::populate_test_sprite_entities(&mut resources, &mut world);
+    // test_scene::populate_test_mesh_entities(&mut resources, &mut world);
+    // test_scene::populate_test_lights(&mut resources, &mut world);
 
     let mut schedule_manager = ScheduleManager::new();
 
     //let mut print_time_event = minimum::util::PeriodicEvent::default();
 
     let sdl2_imgui = resources.get::<Sdl2ImguiManager>().unwrap().clone();
+
+    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("12b37b66-94f7-4fa6-abb3-4050619c3e11")).unwrap();
 
     'running: loop {
         let t0 = std::time::Instant::now();

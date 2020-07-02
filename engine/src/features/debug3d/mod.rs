@@ -14,9 +14,9 @@ use renderer::assets::MaterialAsset;
 mod extract;
 mod prepare;
 mod write;
-mod debug3d_resource;
 
-pub use debug3d_resource::*;
+pub use minimum::game::resources::LineList3D;
+pub use minimum::game::resources::DebugDraw3DResource;
 
 pub fn create_debug3d_extract_job(
     device_context: VkDeviceContext,

@@ -8,6 +8,7 @@ use minimum::editor::EditorInspectRegistryBuilder;
 
 use minimum::ComponentRegistry;
 use minimum::resources::editor::Keybinds;
+use crate::components::MeshComponentDef;
 
 /// Create the asset manager that has all the required types registered
 pub fn create_asset_resource() -> AssetResource {
@@ -43,6 +44,7 @@ pub fn create_editor_inspector_registry() -> EditorInspectRegistry {
         .register::<UniformScaleComponent>()
         .register::<NonUniformScaleComponent>()
         .register::<Rotation2DComponent>()
+        .register::<MeshComponentDef>()
         // .register::<RigidBodyBallComponentDef>()
         // .register::<RigidBodyBoxComponentDef>()
         .build()

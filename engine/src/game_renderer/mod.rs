@@ -270,11 +270,6 @@ impl GameRenderer {
             resources.get::<DynamicVisibilityNodeSet>().unwrap();
         let dynamic_visibility_node_set = &*dynamic_visibility_node_set_fetch;
 
-        // let mut debug_draw_3d_line_lists = resources
-        //     .get_mut::<DebugDraw3DResource>()
-        //     .unwrap()
-        //     .take_line_lists();
-
         let render_registry = resources.get::<RenderRegistry>().unwrap().clone();
         let device_context = resources.get::<VkDeviceContext>().unwrap().clone();
 

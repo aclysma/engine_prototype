@@ -1,0 +1,16 @@
+Prefab(
+    id: "12b37b66-94f7-4fa6-abb3-4050619c3e11",
+    objects: [
+        Entity(PrefabEntity(
+            id: "e938c98b-df7e-41d7-a2e4-9f028702b022",
+            components: [
+                EntityComponent(
+                    type: "46b6a84c-f224-48ac-a56d-46971bcaf7f1",
+                    data: MeshComponentDef(
+                        value: 50.0,
+                    ),
+                ),
+            ],
+        )),
+    ]
+)

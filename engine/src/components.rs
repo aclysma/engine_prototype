@@ -5,8 +5,22 @@ use crate::assets::gltf::MeshAsset;
 use glam::f32::Vec3;
 use crate::features::sprite::SpriteRenderNodeHandle;
 use renderer::assets::ImageAsset;
+use type_uuid::*;
+use serde::{Serialize, Deserialize};
+use serde_diff::SerdeDiff;
 
-#[derive(Clone)]
+use imgui_inspect_derive::Inspect;
+
+#[derive(TypeUuid, Serialize, Deserialize, SerdeDiff, Debug, PartialEq, Clone, Inspect, Default)]
+#[uuid = "46b6a84c-f224-48ac-a56d-46971bcaf7f1"]
+pub struct MeshComponentDef {
+    #[serde_diff(opaque)]
+    #[inspect(skip)]
+    pub mesh: Option<Handle<MeshAsset>>
+}
+
+legion_prefab::register_component_type!(MeshComponentDef);
+
 pub struct MeshComponent {
     pub mesh_handle: MeshRenderNodeHandle,
     pub visibility_handle: DynamicAabbVisibilityNodeHandle,

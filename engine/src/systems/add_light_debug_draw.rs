@@ -1,10 +1,10 @@
 use legion::prelude::*;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
-use crate::features::debug3d::DebugDraw3DResource;
 use crate::components::{
     DirectionalLightComponent, PointLightComponent, SpotLightComponent, PositionComponent,
 };
+use minimum::resources::DebugDraw3DResource;
 
 pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
     SystemBuilder::new("quit_if_escape_pressed")
