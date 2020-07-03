@@ -7,7 +7,13 @@ Prefab(
                 EntityComponent(
                     type: "46b6a84c-f224-48ac-a56d-46971bcaf7f1",
                     data: MeshComponentDef(
-                        value: 50.0,
+                        mesh: Some("ffc9b240-0a17-4ff4-bb7d-72d13cc6e261"),
+                    ),
+                ),
+                EntityComponent(
+                    type: "8bf67228-f96c-4649-b306-ecd107194cf0",
+                    data: PositionComponent(
+                        position: Vec3(0.0, 0.0, 0.0),
                     ),
                 ),
             ],

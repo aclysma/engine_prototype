@@ -60,6 +60,11 @@ impl GameRenderer {
         _window: &dyn Window,
         resources: &Resources,
     ) -> VkResult<Self> {
+        let game_renderer_resources =
+            GameRendererStaticResources::new(resources)?;
+
+        log::info!("all waits complete");
+
         let mut asset_resource_fetch = resources.get_mut::<AssetResource>().unwrap();
         let asset_resource = &mut *asset_resource_fetch;
 
@@ -80,10 +85,6 @@ impl GameRenderer {
             .add_render_phase::<TransparentRenderPhase>()
             .add_render_phase::<UiRenderPhase>()
             .build();
-
-        log::info!("all waits complete");
-        let game_renderer_resources =
-            GameRendererStaticResources::new(asset_resource, resource_manager)?;
 
         let render_thread = RenderThread::start();
 

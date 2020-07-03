@@ -8,11 +8,31 @@ use minimum::editor::EditorInspectRegistryBuilder;
 
 use minimum::ComponentRegistry;
 use minimum::resources::editor::Keybinds;
-use crate::components::MeshComponentDef;
+use crate::components::{MeshComponentDef, MeshComponent};
+use legion::prelude::Resources;
+use renderer::assets::ResourceManager;
+use crate::game_resource_manager::GameResourceManager;
+
+struct AssetResourceUpdateCallbackImpl;
+
+impl AssetResourceUpdateCallback for AssetResourceUpdateCallbackImpl {
+    fn update(&self, resources: &Resources, asset_resource: &mut AssetResource) {
+        // Update the asset manager
+        asset_resource.do_update();
+
+        // Update the renderer resource manager
+        let mut resource_manager = resources.get_mut::<ResourceManager>().unwrap();
+        resource_manager.update_resources().unwrap();
+
+        // Update the game resource manager
+        resources.get_mut::<GameResourceManager>().unwrap().update_resources(&* resource_manager).unwrap();
+    }
+}
 
 /// Create the asset manager that has all the required types registered
 pub fn create_asset_resource() -> AssetResource {
     let mut asset_manager = AssetResource::default();
+    asset_manager.set_update_fn(Box::new(AssetResourceUpdateCallbackImpl));
     asset_manager.add_storage::<minimum::pipeline::PrefabAsset>();
     asset_manager
 }
@@ -33,6 +53,7 @@ pub fn create_editor_selection_registry() -> EditorSelectRegistry {
         // .register::<DrawSkiaCircleComponent>()
         // .register_transformed::<RigidBodyBoxComponentDef, RigidBodyComponent>()
         // .register_transformed::<RigidBodyBallComponentDef, RigidBodyComponent>()
+        .register_transformed::<MeshComponentDef, MeshComponent>()
         .build()
 }
 

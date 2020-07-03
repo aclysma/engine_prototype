@@ -87,7 +87,6 @@ pub fn run() {
     viewport.set_screen_space_view(glam::Mat4::identity(), glam::Vec2::new(window_size.0 as f32, window_size.1 as f32));
     viewport.set_world_space_view(glam::Mat4::identity());
 
-
     resources.insert(camera);
     resources.insert(viewport);
 
@@ -105,8 +104,8 @@ pub fn run() {
     resources.insert(UniverseResource::new(universe));
 
     // test_scene::populate_test_sprite_entities(&mut resources, &mut world);
-    // test_scene::populate_test_mesh_entities(&mut resources, &mut world);
-    // test_scene::populate_test_lights(&mut resources, &mut world);
+    //test_scene::populate_test_mesh_entities(&mut resources, &mut world);
+    test_scene::populate_test_lights(&mut resources, &mut world);
 
     let mut schedule_manager = ScheduleManager::new();
 
@@ -120,7 +119,7 @@ pub fn run() {
         let t0 = std::time::Instant::now();
 
         for event in event_pump.poll_iter() {
-            log::info!("SDL2 Event: {:?}", event);
+            //log::info!("SDL2 Event: {:?}", event);
 
             let mut input_resource = resources.get_mut::<InputResource>().unwrap();
 

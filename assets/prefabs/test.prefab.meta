@@ -1,6 +1,6 @@
 (
     version: 1,
-    import_hash: Some(14859123404193679971),
+    import_hash: Some(16682445080170852811),
     importer_version: 1,
     importer_type: "5bdf4d06-a1cb-437b-b182-d6d8cb23512c",
     importer_options: (),
@@ -15,13 +15,17 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 1824018968241249592,
+                hash: 17018491886886602971,
                 id: "12b37b66-94f7-4fa6-abb3-4050619c3e11",
-                build_deps: [],
-                load_deps: [],
+                build_deps: [
+                    Uuid("ffc9b240-0a17-4ff4-bb7d-72d13cc6e261"),
+                ],
+                load_deps: [
+                    Uuid("ffc9b240-0a17-4ff4-bb7d-72d13cc6e261"),
+                ],
                 compression: None,
-                compressed_size: Some(132),
-                uncompressed_size: Some(132),
+                compressed_size: Some(245),
+                uncompressed_size: Some(245),
                 type_id: "5e751ea4-e63b-4192-a008-f5bf8674e45b",
             )),
         ),

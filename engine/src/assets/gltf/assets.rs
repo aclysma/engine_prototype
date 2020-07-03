@@ -8,6 +8,8 @@ use std::sync::Arc;
 use renderer::assets::DescriptorSetArc;
 use renderer::assets::ResourceArc;
 use renderer::vulkan::VkBufferRaw;
+use minimum::math::BoundingSphere;
+use minimum::math::BoundingAabb;
 
 //TODO: These are extensions that might be interesting to try supporting. In particular, lights,
 // LOD, and clearcoat
@@ -154,9 +156,11 @@ pub struct MeshPartData {
 #[derive(TypeUuid, Serialize, Deserialize, Clone)]
 #[uuid = "cf232526-3757-4d94-98d1-c2f7e27c979f"]
 pub struct MeshAssetData {
+    pub bounding_sphere: BoundingSphere,
+    pub bounding_aabb: BoundingAabb,
     pub mesh_parts: Vec<MeshPartData>,
-    pub vertex_buffer: Handle<BufferAsset>, //Vec<MeshVertex>,
-    pub index_buffer: Handle<BufferAsset>,  //Vec<u16>,
+    pub vertex_buffer: Handle<BufferAsset>,
+    pub index_buffer: Handle<BufferAsset>,
 }
 
 pub struct MeshAssetPart {

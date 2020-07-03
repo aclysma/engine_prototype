@@ -22,6 +22,7 @@ use renderer::assets::ImageAsset;
 use renderer::assets::MaterialInstanceAsset;
 use renderer::assets::BufferAsset;
 use renderer::assets::MaterialAsset;
+use minimum::math::BoundingAabb;
 
 #[derive(Debug)]
 struct GltfImportError {
@@ -101,7 +102,7 @@ impl Importer for GltfImporter {
     where
         Self: Sized,
     {
-        23
+        24
     }
 
     fn version(&self) -> u32 {
@@ -762,6 +763,7 @@ fn extract_meshes_to_import(
         let mut all_indices = PushBuffer::new(16384);
 
         let mut mesh_parts: Vec<MeshPartData> = Vec::with_capacity(mesh.primitives().len());
+        let mut bounding_aabb : Option<BoundingAabb> = None;
 
         //
         // Iterate all mesh parts, building a single vertex and index buffer. Each MeshPart will
@@ -808,6 +810,11 @@ fn extract_meshes_to_import(
                                 }],
                                 1,
                             );
+
+                            match &mut bounding_aabb {
+                                Some(x) => x.expand(positions[i].into()),
+                                None => bounding_aabb = Some(BoundingAabb::new(positions[i].into()))
+                            }
                         }
 
                         all_indices.push(&part_indices, 1);
@@ -909,7 +916,12 @@ fn extract_meshes_to_import(
                 Handle::<BufferAsset>::new(ref_op_sender.clone(), load_handle)
             });
 
+        let bounding_aabb = bounding_aabb.unwrap();
+        let bounding_sphere = bounding_aabb.calculate_bounding_sphere();
+
         let asset = MeshAssetData {
+            bounding_sphere,
+            bounding_aabb,
             mesh_parts,
             vertex_buffer: vertex_buffer_handle,
             index_buffer: index_buffer_handle,
