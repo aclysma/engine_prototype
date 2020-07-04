@@ -5,6 +5,10 @@
 #[macro_use]
 extern crate log;
 
+#[allow(unused_imports)]
+#[macro_use]
+extern crate itertools;
+
 pub use renderer;
 pub use minimum;
 
@@ -24,7 +28,7 @@ use minimum_sdl2::imgui::Sdl2ImguiManager;
 
 use renderer_shell_vulkan_sdl2::Sdl2Window;
 use crate::components::{
-    PositionComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent,
+    PointLightComponent, SpotLightComponent, DirectionalLightComponent,
 };
 
 use crate::game_renderer::GameRenderer;
@@ -113,7 +117,8 @@ pub fn run() {
 
     let sdl2_imgui = resources.get::<Sdl2ImguiManager>().unwrap().clone();
 
-    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("12b37b66-94f7-4fa6-abb3-4050619c3e11")).unwrap();
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("12b37b66-94f7-4fa6-abb3-4050619c3e11")).unwrap();
+    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
 
     'running: loop {
         let t0 = std::time::Instant::now();

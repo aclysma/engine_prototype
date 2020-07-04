@@ -13,7 +13,7 @@ use crate::assets::gltf::{GltfMaterialAsset, MeshAssetData};
 
 use crate::game_resource_manager::GameResourceManager;
 use renderer::assets::ResourceManager;
-use crate::phases::{OpaqueRenderPhase, UiRenderPhase};
+use crate::phases::{OpaqueRenderPhase, UiRenderPhase, PreUiRenderPhase};
 use crate::phases::TransparentRenderPhase;
 use crate::features::imgui::ImGuiRenderFeature;
 use minimum::resources::{AssetResource, ImguiResource};
@@ -142,6 +142,7 @@ pub fn rendering_init(
         .register_feature::<ImGuiRenderFeature>()
         .register_render_phase::<OpaqueRenderPhase>()
         .register_render_phase::<TransparentRenderPhase>()
+        .register_render_phase::<PreUiRenderPhase>()
         .register_render_phase::<UiRenderPhase>()
         .build();
     resources.insert(render_registry);

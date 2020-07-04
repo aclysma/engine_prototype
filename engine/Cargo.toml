@@ -61,6 +61,8 @@ arrayvec = "0.5"
 
 structopt = "0.3"
 
+itertools = "0.8"
+
 # For selection logic
 nalgebra = { version = "0.18", features = [ "serde-serialize" ] }
 nalgebra-glm = "0.4"

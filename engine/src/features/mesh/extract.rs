@@ -3,7 +3,7 @@ use crate::features::mesh::{
     MeshPerObjectShaderParam, ExtractedViewNodeMeshData, MeshPerViewShaderParam,
 };
 use crate::components::{
-    PointLightComponent, SpotLightComponent, DirectionalLightComponent, PositionComponent,
+    PointLightComponent, SpotLightComponent, DirectionalLightComponent,
 };
 use crate::render_contexts::{RenderJobExtractContext, RenderJobWriteContext, RenderJobPrepareContext};
 use renderer::nodes::{
@@ -19,6 +19,7 @@ use legion::prelude::*;
 use crate::components::MeshComponent;
 use crate::game_resource_manager::GameResourceManager;
 use renderer::assets::MaterialAsset;
+use minimum::components::PositionComponent;
 
 pub struct MeshExtractJobImpl {
     descriptor_set_allocator: DescriptorSetAllocatorRef,
@@ -83,19 +84,23 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 
         let position_component = extract_context
             .world
-            .get_component::<PositionComponent>(mesh_render_node.entity)
-            .unwrap();
+            .get_component::<PositionComponent>(mesh_render_node.entity);
         let mesh_component = extract_context
             .world
-            .get_component::<MeshComponent>(mesh_render_node.entity)
-            .unwrap();
-
+            .get_component::<MeshComponent>(mesh_render_node.entity);
         let game_resource_manager = extract_context
             .resources
-            .get::<GameResourceManager>()
-            .unwrap();
+            .get::<GameResourceManager>();
 
-        let mesh_info = game_resource_manager.get_mesh_info(&mesh_component.mesh);
+        if position_component.is_none() || mesh_component.is_none() || game_resource_manager.is_none() {
+            self.extracted_frame_node_mesh_data.push(None);
+            return;
+        }
+        let position_component = position_component.unwrap();
+        let mesh_component = mesh_component.unwrap();
+        let game_resource_manager = game_resource_manager.unwrap();
+
+        let mesh_info = mesh_component.mesh.as_ref().and_then(|mesh_asset_handle| game_resource_manager.get_mesh_info(&mesh_asset_handle));
         if mesh_info.is_none() {
             self.extracted_frame_node_mesh_data.push(None);
             return;
@@ -121,7 +126,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             })
             .collect();
 
-        let world_transform = glam::Mat4::from_translation(position_component.position);
+        let world_transform = glam::Mat4::from_translation(*position_component.position);
 
         self.extracted_frame_node_mesh_data
             .push(Some(ExtractedFrameNodeMeshData {
@@ -214,7 +219,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             }
 
             let out = &mut per_view_data.point_lights[light_count];
-            out.position_ws = position.position;
+            out.position_ws = *position.position;
             out.position_vs = (view.view_matrix() * position.position.extend(1.0)).truncate();
             out.color = light.color;
             out.range = light.range;
@@ -230,9 +235,9 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
                 break;
             }
 
-            let light_from = position.position;
+            let light_from = *position.position;
             let light_from_vs = (view.view_matrix() * light_from.extend(1.0)).truncate();
-            let light_to = position.position + light.direction;
+            let light_to = *position.position + light.direction;
             let light_to_vs = (view.view_matrix() * light_to.extend(1.0)).truncate();
 
             let light_direction = (light_to - light_from).normalize();

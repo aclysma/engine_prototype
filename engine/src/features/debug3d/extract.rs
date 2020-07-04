@@ -15,6 +15,7 @@ pub struct Debug3dExtractJobImpl {
     device_context: VkDeviceContext,
     descriptor_set_allocator: DescriptorSetAllocatorRef,
     pipeline_info: PipelineSwapchainInfo,
+    pipeline_info_no_depth: PipelineSwapchainInfo,
     debug3d_material: Handle<MaterialAsset>,
 }
 
@@ -23,12 +24,14 @@ impl Debug3dExtractJobImpl {
         device_context: VkDeviceContext,
         descriptor_set_allocator: DescriptorSetAllocatorRef,
         pipeline_info: PipelineSwapchainInfo,
+        pipeline_info_no_depth: PipelineSwapchainInfo,
         debug3d_material: &Handle<MaterialAsset>,
     ) -> Self {
         Debug3dExtractJobImpl {
             device_context,
             descriptor_set_allocator,
             pipeline_info,
+            pipeline_info_no_depth,
             debug3d_material: debug3d_material.clone(),
         }
     }
@@ -79,6 +82,7 @@ impl ExtractJob<RenderJobExtractContext, RenderJobPrepareContext, RenderJobWrite
         Box::new(Debug3dPrepareJobImpl::new(
             self.device_context,
             self.pipeline_info,
+            self.pipeline_info_no_depth,
             dyn_resource_allocator,
             per_view_descriptor_sets,
             ExtractedDebug3dData { line_lists },

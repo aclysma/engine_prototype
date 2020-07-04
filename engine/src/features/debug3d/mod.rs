@@ -22,12 +22,14 @@ pub fn create_debug3d_extract_job(
     device_context: VkDeviceContext,
     descriptor_set_allocator: DescriptorSetAllocatorRef,
     pipeline_info: PipelineSwapchainInfo,
+    pipeline_info_no_depth: PipelineSwapchainInfo,
     debug3d_material: &Handle<MaterialAsset>,
 ) -> Box<dyn ExtractJob<RenderJobExtractContext, RenderJobPrepareContext, RenderJobWriteContext>> {
     Box::new(Debug3dExtractJobImpl::new(
         device_context,
         descriptor_set_allocator,
         pipeline_info,
+        pipeline_info_no_depth,
         debug3d_material,
     ))
 }

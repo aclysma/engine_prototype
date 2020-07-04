@@ -12,7 +12,7 @@ use renderer::assets::resources::PipelineSwapchainInfo;
 use renderer::nodes::{PreparedRenderData, RenderView};
 use crate::render_contexts::{RenderJobWriteContext, RenderJobWriteContextFactory};
 use renderer::vulkan::cleanup::VkCombinedDropSink;
-use crate::phases::UiRenderPhase;
+use crate::phases::{UiRenderPhase, PreUiRenderPhase};
 
 /// Draws sprites
 pub struct VkUiRenderPass {
@@ -158,6 +158,7 @@ impl VkUiRenderPass {
 
             let mut write_context = write_context_factory.create_context(*command_buffer);
 
+            prepared_render_data.write_view_phase::<PreUiRenderPhase>(&view, &mut write_context);
             prepared_render_data.write_view_phase::<UiRenderPhase>(&view, &mut write_context);
 
             logical_device.cmd_end_render_pass(*command_buffer);

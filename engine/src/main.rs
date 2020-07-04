@@ -6,7 +6,7 @@ fn main() {
     let mut log_level = log::LevelFilter::Info;
     //#[cfg(debug_assertions)]
     {
-        log_level = log::LevelFilter::Debug;
+        log_level = log::LevelFilter::Trace;
     }
 
     // Setup logging

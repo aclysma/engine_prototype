@@ -1,6 +1,6 @@
 use crate::features::debug3d::{Debug3dRenderFeature, Debug3dDrawCall};
 use renderer::nodes::{
-    RenderFeatureIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
+    RenderFeatureIndex, RenderPhaseIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
 };
 use crate::render_contexts::RenderJobWriteContext;
 use renderer::vulkan::VkBufferRaw;
@@ -11,68 +11,108 @@ use ash::version::DeviceV1_0;
 pub struct Debug3dCommandWriter {
     pub(super) vertex_buffer: Option<ResourceArc<VkBufferRaw>>,
     pub(super) draw_calls: Vec<Debug3dDrawCall>,
+    pub(super) vertex_buffer_no_depth: Option<ResourceArc<VkBufferRaw>>,
+    pub(super) draw_calls_no_depth: Vec<Debug3dDrawCall>,
     pub(super) pipeline_info: PipelineSwapchainInfo,
+    pub(super) pipeline_info_no_depth: PipelineSwapchainInfo,
     pub(super) descriptor_set_per_view: Vec<DescriptorSetArc>,
 }
 
 impl FeatureCommandWriter<RenderJobWriteContext> for Debug3dCommandWriter {
     fn apply_setup(
         &self,
-        write_context: &mut RenderJobWriteContext,
-        view: &RenderView,
+        _write_context: &mut RenderJobWriteContext,
+        _view: &RenderView,
+        _render_phase_index: RenderPhaseIndex,
     ) {
-        if let Some(vertex_buffer) = self.vertex_buffer.as_ref() {
-            let logical_device = write_context.device_context.device();
-            let command_buffer = write_context.command_buffer;
-            unsafe {
-                logical_device.cmd_bind_pipeline(
-                    command_buffer,
-                    vk::PipelineBindPoint::GRAPHICS,
-                    self.pipeline_info.pipeline.get_raw().pipelines[0],
-                );
-
-                // Bind per-pass data (UBO with view/proj matrix, sampler)
-                logical_device.cmd_bind_descriptor_sets(
-                    command_buffer,
-                    vk::PipelineBindPoint::GRAPHICS,
-                    self.pipeline_info.pipeline_layout.get_raw().pipeline_layout,
-                    0,
-                    &[self.descriptor_set_per_view[view.view_index() as usize].get()],
-                    &[],
-                );
-
-                logical_device.cmd_bind_vertex_buffers(
-                    command_buffer,
-                    0, // first binding
-                    &[vertex_buffer.get_raw().buffer],
-                    &[0], // offsets
-                );
-            }
-        }
+        // Nothing here, render_element gets called once per phase so there is no advantage to
+        // doing setup here
     }
 
     fn render_element(
         &self,
         write_context: &mut RenderJobWriteContext,
-        _view: &RenderView,
+        view: &RenderView,
+        _render_phase_index: RenderPhaseIndex,
         index: SubmitNodeId,
     ) {
+        let logical_device = write_context.device_context.device();
+        let command_buffer = write_context.command_buffer;
+
         // The prepare phase emits a single node which will draw everything. In the future it might
         // emit a node per draw call that uses transparency
         if index == 0 {
-            // //println!("render");
-            let logical_device = write_context.device_context.device();
-            let command_buffer = write_context.command_buffer;
-
-            unsafe {
-                for draw_call in &self.draw_calls {
-                    logical_device.cmd_draw(
+            if let Some(vertex_buffer) = self.vertex_buffer.as_ref() {
+                unsafe {
+                    logical_device.cmd_bind_pipeline(
                         command_buffer,
-                        draw_call.count as u32,
-                        1,
-                        draw_call.first_element as u32,
-                        0,
+                        vk::PipelineBindPoint::GRAPHICS,
+                        self.pipeline_info.pipeline.get_raw().pipelines[0],
                     );
+
+                    // Bind per-pass data (UBO with view/proj matrix, sampler)
+                    logical_device.cmd_bind_descriptor_sets(
+                        command_buffer,
+                        vk::PipelineBindPoint::GRAPHICS,
+                        self.pipeline_info.pipeline_layout.get_raw().pipeline_layout,
+                        0,
+                        &[self.descriptor_set_per_view[view.view_index() as usize].get()],
+                        &[],
+                    );
+
+                    logical_device.cmd_bind_vertex_buffers(
+                        command_buffer,
+                        0, // first binding
+                        &[vertex_buffer.get_raw().buffer],
+                        &[0], // offsets
+                    );
+
+                    for draw_call in &self.draw_calls {
+                        logical_device.cmd_draw(
+                            command_buffer,
+                            draw_call.count as u32,
+                            1,
+                            draw_call.first_element as u32,
+                            0,
+                        );
+                    }
+                }
+            }
+        } else if index == 1 {
+            if let Some(vertex_buffer_no_depth) = self.vertex_buffer_no_depth.as_ref() {
+                unsafe {
+                    logical_device.cmd_bind_pipeline(
+                        command_buffer,
+                        vk::PipelineBindPoint::GRAPHICS,
+                        self.pipeline_info_no_depth.pipeline.get_raw().pipelines[0],
+                    );
+
+                    // Bind per-pass data (UBO with view/proj matrix, sampler)
+                    logical_device.cmd_bind_descriptor_sets(
+                        command_buffer,
+                        vk::PipelineBindPoint::GRAPHICS,
+                        self.pipeline_info_no_depth.pipeline_layout.get_raw().pipeline_layout,
+                        0,
+                        &[self.descriptor_set_per_view[view.view_index() as usize].get()],
+                        &[],
+                    );
+
+                    logical_device.cmd_bind_vertex_buffers(
+                        command_buffer,
+                        0, // first binding
+                        &[vertex_buffer_no_depth.get_raw().buffer],
+                        &[0], // offsets
+                    );
+
+                    for draw_call in &self.draw_calls_no_depth {
+                        logical_device.cmd_draw(
+                            command_buffer,
+                            draw_call.count as u32,
+                            1,
+                            draw_call.first_element as u32,
+                            0,
+                        );
+                    }
                 }
             }
         }
@@ -82,6 +122,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for Debug3dCommandWriter {
         &self,
         _write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
+        _render_phase_index: RenderPhaseIndex,
     ) {
     }
 

@@ -12,7 +12,7 @@ use renderer::nodes::{
     RenderPhaseMaskBuilder, RenderPhaseMask, RenderRegistry, RenderViewSet, AllRenderNodes,
     FramePacketBuilder, ExtractJobSet,
 };
-use crate::phases::{OpaqueRenderPhase, UiRenderPhase};
+use crate::phases::{OpaqueRenderPhase, UiRenderPhase, PreUiRenderPhase};
 use crate::phases::TransparentRenderPhase;
 use legion::prelude::*;
 use crate::render_contexts::{RenderJobExtractContext};
@@ -83,6 +83,7 @@ impl GameRenderer {
         let main_camera_render_phase_mask = RenderPhaseMaskBuilder::default()
             .add_render_phase::<OpaqueRenderPhase>()
             .add_render_phase::<TransparentRenderPhase>()
+            .add_render_phase::<PreUiRenderPhase>()
             .add_render_phase::<UiRenderPhase>()
             .build();
 
@@ -400,6 +401,12 @@ impl GameRenderer {
                 0,
             );
 
+            let debug3d_pipeline_info_no_depth = resource_manager.get_pipeline_info(
+                &guard.static_resources.debug3d_material_no_depth,
+                &swapchain_surface_info,
+                0,
+            );
+
             let imgui_pipeline_info = resource_manager.get_pipeline_info(
                 &guard.static_resources.imgui_material,
                 &swapchain_surface_info,
@@ -428,6 +435,7 @@ impl GameRenderer {
                 device_context.clone(),
                 resource_manager.create_descriptor_set_allocator(),
                 debug3d_pipeline_info,
+                debug3d_pipeline_info_no_depth,
                 &guard.static_resources.debug3d_material,
             ));
 

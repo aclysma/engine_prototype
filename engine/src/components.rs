@@ -1,4 +1,4 @@
-use crate::features::mesh::MeshRenderNodeHandle;
+use crate::features::mesh::{MeshRenderNodeHandle, MeshRenderNodeSet, MeshRenderNode};
 use renderer::visibility::DynamicAabbVisibilityNodeHandle;
 use atelier_assets::loader::handle::Handle;
 use crate::assets::gltf::MeshAsset;
@@ -9,18 +9,24 @@ use type_uuid::*;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use serde_diff::{SerdeDiff, DiffContext, ApplyContext};
 use minimum::editor::EditorSelectableTransformed;
+use legion::storage::ComponentStorage;
+use legion::index::ComponentIndex;
+use renderer::visibility::DynamicVisibilityNodeSet;
+use renderer::visibility::DynamicAabbVisibilityNode;
 
 use imgui_inspect_derive::Inspect;
 use legion::prelude::{Entity, Resources, World, EntityStore};
 use minimum::resources::editor::OpenedPrefabState;
-use minimum::components::{UniformScaleComponent, NonUniformScaleComponent, Rotation2DComponent};
+use minimum::components::{UniformScaleComponent, NonUniformScaleComponent, Rotation2DComponent, PositionComponent};
 use ncollide3d::pipeline::{CollisionGroups, GeometricQueryType};
 use ncollide3d::world::CollisionWorld;
 use minimum::resources::AssetResource;
 use std::marker::PhantomData;
 use imgui::Ui;
 use imgui_inspect::{InspectArgsDefault, InspectArgsStruct};
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref, DerefMut, Range};
+use legion_prefab::SpawnFrom;
+use legion_transaction::iter_components_in_storage;
 
 pub fn vec3_glam_to_glm(value: glam::Vec3) -> nalgebra_glm::Vec3 {
     nalgebra_glm::Vec3::new(value.x(), value.y(), value.z())
@@ -125,7 +131,7 @@ legion_prefab::register_component_type!(MeshComponentDef);
 pub struct MeshComponent {
     pub mesh_handle: MeshRenderNodeHandle,
     pub visibility_handle: DynamicAabbVisibilityNodeHandle,
-    pub mesh: Handle<MeshAsset>,
+    pub mesh: Option<Handle<MeshAsset>>,
 }
 
 impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
@@ -181,7 +187,7 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
 
                     collision_world.add(
                         ncollide3d::math::Isometry::from_parts(
-                            nalgebra::Translation::from(vec3_glam_to_glm(position.position + bounding_sphere.center)),
+                            nalgebra::Translation::from(vec3_glam_to_glm(*position.position + bounding_sphere.center)),
                             rotation,
                         ),
                         shape_handle,
@@ -195,10 +201,166 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
     }
 }
 
-#[derive(Copy, Clone)]
-pub struct PositionComponent {
-    pub position: Vec3,
+// fn transform_shape_to_rigid_body(
+//     physics: &mut PhysicsResource,
+//     into: &mut std::mem::MaybeUninit<RigidBodyComponent>,
+//     src_position: Option<&PositionComponent>,
+//     _src_rotation: Option<&Rotation2DComponent>,
+//     shape_handle: ShapeHandle<f32>,
+//     is_static: bool,
+// ) {
+//     let position = if let Some(position) = src_position {
+//         position.position
+//     } else {
+//         Vec3::zero()
+//     };
+//
+//     let mut collider_offset = Vec3::zero();
+//
+//     // Build the rigid body.
+//     let rigid_body_handle = if is_static {
+//         *collider_offset += *position;
+//         physics.bodies.insert(nphysics2d::object::Ground::new())
+//     } else {
+//         physics.bodies.insert(
+//             nphysics2d::object::RigidBodyDesc::new()
+//                 .translation(vec2_glam_to_glm(position.xy().into()))
+//                 .build(),
+//         )
+//     };
+//
+//     // Build the collider.
+//     let collider = nphysics2d::object::ColliderDesc::new(shape_handle.clone())
+//         .density(1.0)
+//         .translation(vec2_glam_to_glm(*collider_offset.xy()))
+//         .build(nphysics2d::object::BodyPartHandle(rigid_body_handle, 0));
+//
+//     // Insert the collider to the body set.
+//     physics.colliders.insert(collider);
+//
+//     *into = std::mem::MaybeUninit::new(RigidBodyComponent {
+//         handle: rigid_body_handle,
+//         delete_body_tx: physics.delete_body_tx().clone(),
+//     })
+// }
+
+impl SpawnFrom<MeshComponentDef> for MeshComponent {
+    fn spawn_from(
+        _src_world: &World,
+        src_component_storage: &ComponentStorage,
+        src_component_storage_indexes: Range<ComponentIndex>,
+        resources: &Resources,
+        _src_entities: &[Entity],
+        dst_entities: &[Entity],
+        from: &[MeshComponentDef],
+        into: &mut [std::mem::MaybeUninit<Self>],
+    ) {
+        //let mut physics = resources.get_mut::<PhysicsResource>().unwrap();
+
+        // let position_components = iter_components_in_storage::<PositionComponent>(
+        //     src_component_storage,
+        //     src_component_storage_indexes.clone(),
+        // );
+        //
+        // let uniform_scale_components = iter_components_in_storage::<UniformScaleComponent>(
+        //     src_component_storage,
+        //     src_component_storage_indexes.clone(),
+        // );
+        //
+        // let rotation_components = iter_components_in_storage::<Rotation2DComponent>(
+        //     src_component_storage,
+        //     src_component_storage_indexes,
+        // );
+
+
+        let mut mesh_render_nodes = resources.get_mut::<MeshRenderNodeSet>().unwrap();
+        let mut dynamic_visibility_node_set =
+            resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
+
+        for (/*src_position, src_uniform_scale, src_rotation,*/ from, into, dst_entity) in izip!(
+            // position_components,
+            // uniform_scale_components,
+            // rotation_components,
+            from,
+            into,
+            dst_entities
+        ) {
+            // mesh_render_nodes.register_mesh_with_handle(|mesh_handle| {
+            //     let aabb_info = DynamicAabbVisibilityNode {
+            //         handle: mesh_handle.into(),
+            //         // aabb bounds
+            //     };
+            //
+            //     // User calls functions to register visibility objects
+            //     // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
+            //     let visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
+            //
+            //     let position_component = PositionComponent { position };
+            //     let mesh_component = MeshComponent {
+            //         mesh_handle,
+            //         visibility_handle,
+            //         mesh: mesh.clone(),
+            //     };
+            //
+            //     let entity = world.insert((), vec![(position_component, mesh_component)])[0];
+            //
+            //     world.get_component::<PositionComponent>(entity).unwrap();
+            //
+            //     MeshRenderNode {
+            //         entity, // sprite asset
+            //     }
+            // });
+
+            let mesh_render_node_handle = mesh_render_nodes.register_mesh(MeshRenderNode {
+                entity: *dst_entity
+            });
+
+            let aabb_info = DynamicAabbVisibilityNode {
+                handle: mesh_render_node_handle.into(),
+                // aabb bounds
+            };
+            let visibility_node_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
+
+            // pub struct MeshComponent {
+            //     pub mesh_handle: MeshRenderNodeHandle,
+            //     pub visibility_handle: DynamicAabbVisibilityNodeHandle,
+            //     pub mesh: Handle<MeshAsset>,
+            // }
+
+
+            let mesh_handle = from.mesh.as_ref().map(|x| x.handle.clone());
+
+            *into = std::mem::MaybeUninit::new(MeshComponent {
+                mesh_handle: mesh_render_node_handle,
+                visibility_handle: visibility_node_handle,
+                mesh: mesh_handle
+                //delete_body_tx: physics.delete_body_tx().clone(),
+            })
+
+
+            // let mut radius = from.radius;
+            // if let Some(src_uniform_scale) = src_uniform_scale {
+            //     radius *= src_uniform_scale.uniform_scale;
+            // }
+
+            // //TODO: Warn if radius is 0
+            // let shape_handle = ShapeHandle::new(Ball::new(radius.max(0.01)));
+            // transform_shape_to_rigid_body(
+            //     &mut physics,
+            //     into,
+            //     src_position,
+            //     src_rotation,
+            //     shape_handle,
+            //     from.is_static,
+            // );
+        }
+    }
 }
+
+// #[derive(Copy, Clone)]
+// pub struct PositionComponent {
+//     pub position: Vec3,
+// }
 
 #[derive(Clone)]
 pub struct PointLightComponent {

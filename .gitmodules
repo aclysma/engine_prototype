@@ -4,3 +4,6 @@
 [submodule "minimum.git"]
 	path = minimum
 	url = https://github.com/aclysma/minimum.git
+[submodule "atelier-assets.git"]
+	path = atelier-assets
+	url = https://github.com/aclysma/atelier-assets.git

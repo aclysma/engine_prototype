@@ -19,6 +19,11 @@ exclude = [
 [profile.dev.package."*"]
 opt-level = 2
 
+[profile.dev.package."prefab-format"]
+opt-level = 0
+[profile.dev.package."legion-prefab"]
+opt-level = 0
+
 # Set the settings for build scripts and proc-macros.
 [profile.dev.build-override]
 opt-level = 2
@@ -26,8 +31,8 @@ opt-level = 2
 #[patch.crates-io]
 #gltf = { path = "gltf" }
 
-#[patch."https://github.com/amethyst/atelier-assets"]
-#atelier-assets = { path = "atelier-assets" }
+[patch."https://github.com/amethyst/atelier-assets"]
+atelier-assets = { path = "atelier-assets" }
 
 
 [patch."https://github.com/aclysma/minimum"]

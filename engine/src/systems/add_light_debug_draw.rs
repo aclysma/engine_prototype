@@ -2,9 +2,10 @@ use legion::prelude::*;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
 use crate::components::{
-    DirectionalLightComponent, PointLightComponent, SpotLightComponent, PositionComponent,
+    DirectionalLightComponent, PointLightComponent, SpotLightComponent,
 };
-use minimum::resources::DebugDraw3DResource;
+use minimum::resources::{DebugDraw3DResource, DebugDraw3DDepthBehavior};
+use minimum::components::PositionComponent;
 
 pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
     SystemBuilder::new("quit_if_escape_pressed")
@@ -21,16 +22,16 @@ pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
                     let light_from = glam::Vec3::new(0.0, 0.0, 0.0);
                     let light_to = light.direction;
 
-                    debug_draw.add_line(light_from, light_to, light.color);
+                    debug_draw.add_line(light_from, light_to, light.color, DebugDraw3DDepthBehavior::Normal);
                 }
 
                 for (position, light) in point_light_query.iter(world) {
-                    debug_draw.add_sphere(position.position, 0.25, light.color, 12);
+                    debug_draw.add_sphere(*position.position, 0.25, light.color, DebugDraw3DDepthBehavior::Normal, 12);
                 }
 
                 for (position, light) in spot_light_query.iter(world) {
-                    let light_from = position.position;
-                    let light_to = position.position + light.direction;
+                    let light_from = *position.position;
+                    let light_to = *position.position + light.direction;
                     let light_direction = (light_to - light_from).normalize();
 
                     debug_draw.add_cone(
@@ -38,6 +39,7 @@ pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
                         light_from + (light.range * light_direction),
                         light.range * light.spotlight_half_angle.tan(),
                         light.color,
+                        DebugDraw3DDepthBehavior::Normal,
                         8,
                     );
                 }

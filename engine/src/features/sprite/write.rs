@@ -1,6 +1,6 @@
 use crate::features::sprite::{SpriteRenderFeature, SpriteDrawCall};
 use renderer::nodes::{
-    RenderFeatureIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
+    RenderFeatureIndex, RenderPhaseIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
 };
 use crate::render_contexts::RenderJobWriteContext;
 use renderer::vulkan::VkBufferRaw;
@@ -21,6 +21,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for SpriteCommandWriter {
         &self,
         write_context: &mut RenderJobWriteContext,
         view: &RenderView,
+        _render_phase_index: RenderPhaseIndex
     ) {
         // println!("render");
         let logical_device = write_context.device_context.device();
@@ -62,6 +63,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for SpriteCommandWriter {
         &self,
         write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
+        _render_phase_index: RenderPhaseIndex,
         index: SubmitNodeId,
     ) {
         // //println!("render");
@@ -116,6 +118,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for SpriteCommandWriter {
         &self,
         _write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
+        _render_phase_index: RenderPhaseIndex
     ) {
     }
 

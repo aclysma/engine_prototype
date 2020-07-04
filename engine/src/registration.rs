@@ -44,6 +44,7 @@ pub fn create_component_registry() -> ComponentRegistry {
         // .add_spawn_mapping_into::<DrawSkiaBoxComponentDef, DrawSkiaBoxComponent>()
         // .add_spawn_mapping::<RigidBodyBallComponentDef, RigidBodyComponent>()
         // .add_spawn_mapping::<RigidBodyBoxComponentDef, RigidBodyComponent>()
+        .add_spawn_mapping::<MeshComponentDef, MeshComponent>()
         .build()
 }
 

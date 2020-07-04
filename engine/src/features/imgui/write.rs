@@ -1,6 +1,6 @@
 use crate::features::imgui::ImGuiRenderFeature;
 use renderer::nodes::{
-    RenderFeatureIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
+    RenderFeatureIndex, RenderPhaseIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
 };
 use crate::render_contexts::RenderJobWriteContext;
 use renderer::vulkan::VkBufferRaw;
@@ -23,6 +23,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for ImGuiCommandWriter {
         &self,
         write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
+        _render_phase_index: RenderPhaseIndex,
     ) {
         if self.imgui_draw_data.is_some() {
             let logical_device = write_context.device_context.device();
@@ -54,6 +55,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for ImGuiCommandWriter {
         &self,
         write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
+        _render_phase_index: RenderPhaseIndex,
         index: SubmitNodeId,
     ) {
         // The prepare phase emits a single node which will draw everything. In the future it might
@@ -146,6 +148,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for ImGuiCommandWriter {
         &self,
         _write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
+        _render_phase_index: RenderPhaseIndex,
     ) {
     }
 

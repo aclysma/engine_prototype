@@ -5,16 +5,20 @@ use renderer::nodes::{
 use crate::features::debug3d::{
     Debug3dRenderFeature, ExtractedDebug3dData, Debug3dDrawCall, Debug3dVertex,
 };
-use crate::phases::OpaqueRenderPhase;
+use crate::phases::{OpaqueRenderPhase, UiRenderPhase, PreUiRenderPhase};
 use super::write::Debug3dCommandWriter;
 use crate::render_contexts::{RenderJobWriteContext, RenderJobPrepareContext};
 use renderer::vulkan::{VkBuffer, VkDeviceContext};
 use ash::vk;
 use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetArc};
+use minimum::resources::{DebugDraw3DDepthBehavior, LineList3D};
+use renderer::assets::ResourceArc;
+use renderer::vulkan::VkBufferRaw;
 
 pub struct Debug3dPrepareJobImpl {
     device_context: VkDeviceContext,
     pipeline_info: PipelineSwapchainInfo,
+    pipeline_info_no_depth: PipelineSwapchainInfo,
     dyn_resource_allocator: renderer::assets::DynResourceAllocatorSet,
     descriptor_set_per_view: Vec<DescriptorSetArc>,
     extracted_debug3d_data: ExtractedDebug3dData,
@@ -24,6 +28,7 @@ impl Debug3dPrepareJobImpl {
     pub(super) fn new(
         device_context: VkDeviceContext,
         pipeline_info: PipelineSwapchainInfo,
+        pipeline_info_no_depth: PipelineSwapchainInfo,
         dyn_resource_allocator: renderer::assets::DynResourceAllocatorSet,
         descriptor_set_per_view: Vec<DescriptorSetArc>,
         extracted_debug3d_data: ExtractedDebug3dData,
@@ -31,6 +36,7 @@ impl Debug3dPrepareJobImpl {
         Debug3dPrepareJobImpl {
             device_context,
             pipeline_info,
+            pipeline_info_no_depth,
             dyn_resource_allocator,
             descriptor_set_per_view,
             extracted_debug3d_data,
@@ -53,47 +59,19 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
         //
         let line_lists = &self.extracted_debug3d_data.line_lists;
         let mut draw_calls = Vec::with_capacity(line_lists.len());
+        let mut draw_calls_no_depth = Vec::with_capacity(line_lists.len());
 
         let mut vertex_list: Vec<Debug3dVertex> = vec![];
+        let mut vertex_list_no_depth: Vec<Debug3dVertex> = vec![];
         for line_list in line_lists {
-            let vertex_buffer_first_element = vertex_list.len() as u32;
-
-            for vertex_pos in &line_list.points {
-                vertex_list.push(Debug3dVertex {
-                    pos: (*vertex_pos).into(),
-                    color: line_list.color.into(),
-                });
+            match line_list.depth_behavior {
+                DebugDraw3DDepthBehavior::Normal => Debug3dPrepareJobImpl::add_line_list(&mut vertex_list, &mut draw_calls, line_list),
+                DebugDraw3DDepthBehavior::NoDepthTest => Debug3dPrepareJobImpl::add_line_list(&mut vertex_list_no_depth, &mut draw_calls_no_depth, line_list)
             }
-
-            let draw_call = Debug3dDrawCall {
-                first_element: vertex_buffer_first_element,
-                count: line_list.points.len() as u32,
-            };
-
-            draw_calls.push(draw_call);
         }
 
-        // We would probably want to support multiple buffers at some point
-        let vertex_buffer = if !draw_calls.is_empty() {
-            let vertex_buffer_size =
-                vertex_list.len() as u64 * std::mem::size_of::<Debug3dVertex>() as u64;
-            let mut vertex_buffer = VkBuffer::new(
-                &self.device_context,
-                vk_mem::MemoryUsage::CpuToGpu,
-                vk::BufferUsageFlags::VERTEX_BUFFER,
-                vk::MemoryPropertyFlags::HOST_VISIBLE | vk::MemoryPropertyFlags::HOST_COHERENT,
-                vertex_buffer_size,
-            )
-            .unwrap();
-
-            vertex_buffer
-                .write_to_host_visible_buffer(vertex_list.as_slice())
-                .unwrap();
-
-            Some(self.dyn_resource_allocator.insert_buffer(vertex_buffer))
-        } else {
-            None
-        };
+        let vertex_buffer = self.create_vertex_buffer(&mut draw_calls, vertex_list);
+        let vertex_buffer_no_depth = self.create_vertex_buffer(&mut draw_calls_no_depth, vertex_list_no_depth);
 
         //
         // Submit a single node for each view
@@ -104,13 +82,17 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
             let mut view_submit_nodes =
                 ViewSubmitNodes::new(self.feature_index(), view.render_phase_mask());
             view_submit_nodes.add_submit_node::<OpaqueRenderPhase>(0, 0, 0.0);
+            view_submit_nodes.add_submit_node::<PreUiRenderPhase>(1, 0, 0.0);
             submit_nodes.add_submit_nodes_for_view(view, view_submit_nodes);
         }
 
         let writer = Box::new(Debug3dCommandWriter {
             draw_calls,
             vertex_buffer,
+            draw_calls_no_depth,
+            vertex_buffer_no_depth,
             pipeline_info: self.pipeline_info,
+            pipeline_info_no_depth: self.pipeline_info_no_depth,
             descriptor_set_per_view: self.descriptor_set_per_view,
         });
 
@@ -123,5 +105,57 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
 
     fn feature_index(&self) -> RenderFeatureIndex {
         Debug3dRenderFeature::feature_index()
+    }
+}
+
+
+impl Debug3dPrepareJobImpl {
+    fn add_line_list(
+        vertex_list: &mut Vec<Debug3dVertex>,
+        draw_calls: &mut Vec<Debug3dDrawCall>,
+        line_list: &LineList3D,
+    ) {
+        let vertex_buffer_first_element = vertex_list.len() as u32;
+
+        for vertex_pos in &line_list.points {
+            vertex_list.push(Debug3dVertex {
+                pos: (*vertex_pos).into(),
+                color: line_list.color.into(),
+            });
+        }
+
+        let draw_call = Debug3dDrawCall {
+            first_element: vertex_buffer_first_element,
+            count: line_list.points.len() as u32,
+        };
+
+        draw_calls.push(draw_call);
+    }
+
+    fn create_vertex_buffer(
+        &self,
+        draw_calls: &mut Vec<Debug3dDrawCall>,
+        mut vertex_list: Vec<Debug3dVertex>
+    ) -> Option<ResourceArc<VkBufferRaw>> {
+        // We would probably want to support multiple buffers at some point
+        if !draw_calls.is_empty() {
+            let vertex_buffer_size =
+                vertex_list.len() as u64 * std::mem::size_of::<Debug3dVertex>() as u64;
+            let mut vertex_buffer = VkBuffer::new(
+                &self.device_context,
+                vk_mem::MemoryUsage::CpuToGpu,
+                vk::BufferUsageFlags::VERTEX_BUFFER,
+                vk::MemoryPropertyFlags::HOST_VISIBLE | vk::MemoryPropertyFlags::HOST_COHERENT,
+                vertex_buffer_size,
+            ).unwrap();
+
+            vertex_buffer
+                .write_to_host_visible_buffer(vertex_list.as_slice())
+                .unwrap();
+
+            Some(self.dyn_resource_allocator.insert_buffer(vertex_buffer))
+        } else {
+            None
+        }
     }
 }
