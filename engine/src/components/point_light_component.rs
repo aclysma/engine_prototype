@@ -14,3 +14,4 @@ pub struct PointLightComponent {
     pub intensity: f32,
 }
 
+legion_prefab::register_component_type!(PointLightComponent);
