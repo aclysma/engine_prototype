@@ -8,7 +8,7 @@ use minimum::editor::EditorInspectRegistryBuilder;
 
 use minimum::ComponentRegistry;
 use minimum::resources::editor::Keybinds;
-use crate::components::{MeshComponentDef, MeshComponent};
+use crate::components::{MeshComponentDef, MeshComponent, SpotLightComponent, PointLightComponent};
 use legion::prelude::Resources;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
@@ -54,6 +54,7 @@ pub fn create_editor_selection_registry() -> EditorSelectRegistry {
         // .register::<DrawSkiaCircleComponent>()
         // .register_transformed::<RigidBodyBoxComponentDef, RigidBodyComponent>()
         // .register_transformed::<RigidBodyBallComponentDef, RigidBodyComponent>()
+        //.register::<PointLightComponent>()
         .register_transformed::<MeshComponentDef, MeshComponent>()
         .build()
 }
@@ -66,6 +67,7 @@ pub fn create_editor_inspector_registry() -> EditorInspectRegistry {
         .register::<UniformScaleComponent>()
         .register::<NonUniformScaleComponent>()
         .register::<Rotation2DComponent>()
+        .register::<PointLightComponent>()
         .register::<MeshComponentDef>()
         // .register::<RigidBodyBallComponentDef>()
         // .register::<RigidBodyBoxComponentDef>()

@@ -26,7 +26,7 @@ pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
                 }
 
                 for (position, light) in point_light_query.iter(world) {
-                    debug_draw.add_sphere(*position.position, 0.25, light.color, DebugDraw3DDepthBehavior::Normal, 12);
+                    debug_draw.add_sphere(*position.position, 0.25, *light.color, DebugDraw3DDepthBehavior::Normal, 12);
                 }
 
                 for (position, light) in spot_light_query.iter(world) {

@@ -27,98 +27,13 @@ use imgui_inspect::{InspectArgsDefault, InspectArgsStruct};
 use std::ops::{Deref, DerefMut, Range};
 use legion_prefab::SpawnFrom;
 use legion_transaction::iter_components_in_storage;
+use crate::components::EditableHandle;
+
 
 pub fn vec3_glam_to_glm(value: glam::Vec3) -> nalgebra_glm::Vec3 {
     nalgebra_glm::Vec3::new(value.x(), value.y(), value.z())
 }
 
-#[derive(Eq)]
-pub struct EditableHandle<T: ?Sized> {
-    handle: Handle<T>
-}
-
-impl<T: ?Sized> PartialEq for EditableHandle<T> {
-    fn eq(
-        &self,
-        other: &Self,
-    ) -> bool {
-        self.handle == other.handle
-    }
-}
-
-impl<T: ?Sized> Clone for EditableHandle<T> {
-    fn clone(&self) -> Self {
-        Self {
-            handle: self.handle.clone(),
-        }
-    }
-}
-
-impl<T> std::fmt::Debug for EditableHandle<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("EditableHandle")
-            .field("handle", &self.handle)
-            .finish()
-    }
-}
-
-impl<T> Deref for EditableHandle<T> {
-    type Target = Handle<T>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.handle
-    }
-}
-
-impl<T> DerefMut for EditableHandle<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.handle
-    }
-}
-
-impl<T> Serialize for EditableHandle<T> {
-    fn serialize<S>(&self, serializer: S) -> Result<<S as Serializer>::Ok, <S as Serializer>::Error> where
-        S: Serializer {
-        self.handle.serialize(serializer)
-    }
-}
-
-impl<'de, T> Deserialize<'de> for EditableHandle<T> {
-    fn deserialize<D>(deserializer: D) -> Result<Self, <D as Deserializer<'de>>::Error> where
-        D: Deserializer<'de> {
-        let handle = <Handle<T> as Deserialize>::deserialize(deserializer)?;
-        Ok(EditableHandle {
-            handle
-        })
-    }
-}
-
-impl<T> SerdeDiff for EditableHandle<T> {
-    fn diff<'a, S: serde::ser::SerializeSeq>(&self, ctx: &mut DiffContext<'a, S>, other: &Self) -> Result<bool, <S as serde::ser::SerializeSeq>::Error> {
-        if self.handle != other.handle {
-            ctx.save_value(other)?;
-            Ok(true)
-        } else {
-            Ok(false)
-        }
-    }
-
-    fn apply<'de, A>(&mut self, seq: &mut A, ctx: &mut ApplyContext) -> Result<bool, <A as serde::de::SeqAccess<'de>>::Error> where
-        A: serde::de::SeqAccess<'de> {
-        ctx.read_value(seq, self)
-    }
-}
-
-impl<T> imgui_inspect::InspectRenderDefault<EditableHandle<T>> for EditableHandle<T> {
-    fn render(data: &[&EditableHandle<T>], label: &'static str, ui: &Ui, args: &InspectArgsDefault) {
-        ui.text(imgui::im_str!("hi {:?}", data[0].handle));
-    }
-
-    fn render_mut(data: &mut [&mut EditableHandle<T>], label: &'static str, ui: &Ui, args: &InspectArgsDefault) -> bool {
-        ui.text(imgui::im_str!("hi {:?}", data[0].handle));
-        false
-    }
-}
 
 #[derive(TypeUuid, Serialize, Deserialize, SerdeDiff, Debug, PartialEq, Clone, Default, Inspect)]
 #[uuid = "46b6a84c-f224-48ac-a56d-46971bcaf7f1"]
@@ -146,7 +61,6 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
         transformed_entity: Entity,
         transformed_component: &MeshComponent
     ) {
-
         if let Some(mesh) = &self.mesh {
             let asset_resource = resources.get::<AssetResource>().unwrap();
             if let Some(mesh) = mesh.asset(asset_resource.storage()) {
@@ -355,40 +269,4 @@ impl SpawnFrom<MeshComponentDef> for MeshComponent {
             // );
         }
     }
-}
-
-// #[derive(Copy, Clone)]
-// pub struct PositionComponent {
-//     pub position: Vec3,
-// }
-
-#[derive(Clone)]
-pub struct PointLightComponent {
-    pub color: glam::Vec4,
-    pub range: f32,
-    pub intensity: f32,
-}
-
-#[derive(Clone)]
-pub struct DirectionalLightComponent {
-    pub direction: glam::Vec3,
-    pub color: glam::Vec4,
-    pub intensity: f32,
-}
-
-#[derive(Clone)]
-pub struct SpotLightComponent {
-    pub direction: glam::Vec3,
-    pub color: glam::Vec4,
-    pub spotlight_half_angle: f32,
-    pub range: f32,
-    pub intensity: f32,
-}
-
-#[derive(Clone)]
-pub struct SpriteComponent {
-    pub sprite_handle: SpriteRenderNodeHandle,
-    pub visibility_handle: DynamicAabbVisibilityNodeHandle,
-    pub alpha: f32,
-    pub image: Handle<ImageAsset>,
 }

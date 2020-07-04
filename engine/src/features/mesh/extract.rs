@@ -221,7 +221,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             let out = &mut per_view_data.point_lights[light_count];
             out.position_ws = *position.position;
             out.position_vs = (view.view_matrix() * position.position.extend(1.0)).truncate();
-            out.color = light.color;
+            out.color = *light.color;
             out.range = light.range;
             out.intensity = light.intensity;
 

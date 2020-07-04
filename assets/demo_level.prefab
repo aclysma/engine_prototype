@@ -30,7 +30,7 @@ Prefab(
                 EntityComponent(
                     type: "8bf67228-f96c-4649-b306-ecd107194cf0",
                     data: PositionComponent(
-                        position: Vec3(3, 1, 0),
+                        position: Vec3(0, 2, 0),
                     ),
                 ),
             ],
