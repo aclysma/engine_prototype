@@ -1,11 +1,14 @@
 mod app_control_systems;
 pub use app_control_systems::quit_if_escape_pressed;
 
-mod update_resource_manager;
-pub use update_resource_manager::update_resource_manager;
+// mod update_resource_manager;
+// pub use update_resource_manager::update_resource_manager;
 
 mod add_light_debug_draw;
 pub use add_light_debug_draw::add_light_debug_draw;
+
+mod temp_logic;
+pub use temp_logic::imgui_draw_mouse_coordinates;
 
 use minimum::systems::*;
 
@@ -169,8 +172,9 @@ impl ScheduleManager {
             .always(advance_time)
             .always(quit_if_escape_pressed)
             .always_thread_local(update_asset_manager)
-            .always(update_resource_manager)
+            //.always(update_resource_manager)
             .always(add_light_debug_draw)
+            //.always(imgui_draw_mouse_coordinates)
             //.always(update_fps_text)
             //.always(update_physics)
             //.simulation_unpaused_only(read_from_physics)

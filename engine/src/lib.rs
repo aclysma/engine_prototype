@@ -85,11 +85,10 @@ pub fn run() {
     //let viewport_size = ViewportSize::new(window_size.0, window_size.1);
 
     let camera = CameraResource::new(glam::Vec2::new(0.0, 1.0), 10.0);
-    //let viewport = ViewportResource::new(viewport_size, camera.position, camera.x_half_extents);
     let mut viewport = ViewportResource::empty();
-    viewport.set_ui_space_view(glam::Mat4::identity());
-    viewport.set_screen_space_view(glam::Mat4::identity(), glam::Vec2::new(window_size.0 as f32, window_size.1 as f32));
-    viewport.set_world_space_view(glam::Mat4::identity());
+    viewport.set_viewport_size_in_pixels(glam::Vec2::new(window_size.0 as f32, window_size.1 as f32));
+    viewport.set_screen_space_view(glam::Mat4::identity());
+    viewport.set_world_space_view(glam::Mat4::identity(), glam::Mat4::identity());
 
     resources.insert(camera);
     resources.insert(viewport);

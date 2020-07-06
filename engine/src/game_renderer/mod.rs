@@ -3,7 +3,7 @@ use renderer::vulkan::{VkSurface, Window, VkDeviceContext, VkContext, FrameInFli
 use ash::prelude::VkResult;
 use std::mem::ManuallyDrop;
 use ash::vk;
-use minimum::resources::{AssetResource, TimeResource};
+use minimum::resources::{AssetResource, TimeResource, ViewportResource};
 use renderer::assets::resources::{ResourceManager, ResourceArc, ImageViewResource};
 use crate::features::debug3d::create_debug3d_extract_job;
 use crate::features::sprite::{SpriteRenderNodeSet, create_sprite_extract_job};
@@ -272,6 +272,8 @@ impl GameRenderer {
             resources.get::<DynamicVisibilityNodeSet>().unwrap();
         let dynamic_visibility_node_set = &*dynamic_visibility_node_set_fetch;
 
+        let mut viewport = resources.get_mut::<ViewportResource>().unwrap();
+
         let render_registry = resources.get::<RenderRegistry>().unwrap().clone();
         let device_context = resources.get::<VkDeviceContext>().unwrap().clone();
 
@@ -286,36 +288,46 @@ impl GameRenderer {
         let swapchain_resources = guard.swapchain_resources.as_mut().unwrap();
         let swapchain_surface_info = swapchain_resources.swapchain_surface_info.clone();
 
+        // https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
+        let vulkan_projection_correction = glam::Mat4::from_scale(glam::Vec3::new(1.0, -1.0, 0.5)) *
+            glam::Mat4::from_translation(glam::Vec3::new(0.0, 0.0, 1.0));
+
         //
         // View Management
         //
-        let camera_rotate_speed = 1.0;
-        let camera_distance_multiplier = 1.0;
-        let loop_time = time_resource.simulation_time.total_time().as_secs_f32();
-        let eye = glam::Vec3::new(
-            camera_distance_multiplier * 8.0 * f32::cos(camera_rotate_speed * loop_time / 2.0),
-            camera_distance_multiplier * 8.0 * f32::sin(camera_rotate_speed * loop_time / 2.0),
-            camera_distance_multiplier * 5.0,
-        );
-
-        let extents_width = 900;
-        let extents_height = 600;
-        let aspect_ratio = extents_width as f32 / extents_height as f32;
-
         let render_view_set = RenderViewSet::default();
         let (main_view, view_proj) = {
+            let camera_rotate_speed = 1.0;
+            let camera_distance_multiplier = 1.0;
+            let loop_time = time_resource.simulation_time.total_time().as_secs_f32();
+            let eye = glam::Vec3::new(
+                camera_distance_multiplier * 8.0 * f32::cos(camera_rotate_speed * loop_time / 2.0),
+                camera_distance_multiplier * 8.0 * f32::sin(camera_rotate_speed * loop_time / 2.0),
+                camera_distance_multiplier * 5.0,
+            );
+
+            let extents_width = swapchain_surface_info.extents.width;
+            let extents_height = swapchain_surface_info.extents.height;
+            let aspect_ratio = extents_width as f32 / extents_height as f32;
+
+            let near_clip = 0.1;
+            let far_clip = 25.0;
+            let fov = std::f32::consts::FRAC_PI_4;
+            let up = glam::Vec3::new(0.0, 0.0, 1.0);
+            let dir = (glam::Vec3::new(0.0, 0.0, 0.0) - eye).normalize();
+
             let view = glam::Mat4::look_at_rh(
                 eye,
                 glam::Vec3::new(0.0, 0.0, 0.0),
                 glam::Vec3::new(0.0, 0.0, 1.0),
             );
-            let proj = glam::Mat4::perspective_rh_gl(
-                std::f32::consts::FRAC_PI_4,
+            let proj = vulkan_projection_correction * glam::Mat4::perspective_rh_gl(
+                fov,
                 aspect_ratio,
-                0.01,
-                20.0,
+                near_clip,
+                far_clip,
             );
-            let proj = glam::Mat4::from_scale(glam::Vec3::new(1.0, -1.0, 1.0)) * proj;
+
             let view_proj = proj * view;
 
             let main_view = render_view_set.create_view(
@@ -326,8 +338,48 @@ impl GameRenderer {
                 "main".to_string(),
             );
 
+            viewport.set_world_space_view(
+                proj,
+                view,
+                // eye,
+                // dir,
+                // up,
+                // fov,
+                // near_clip,
+                // far_clip
+            );
+
             (main_view, view_proj)
         };
+
+        // Set up the screen-space viewport matrices
+        {
+            let multiplier = 600.0 as f32 / swapchain_surface_info.extents.height as f32;
+
+            let half_extents_width = (swapchain_surface_info.extents.width as f32 * multiplier) / 2.0;
+            let half_extents_height = (swapchain_surface_info.extents.height as f32 * multiplier) / 2.0;
+
+            // let view = glam::Mat4::look_at_rh(
+            //     glam::Vec3::new(0.0, 0.0, -100.0),
+            //     glam::Vec3::new(0.0, 0.0, 0.0),
+            //     glam::Vec3::new(0.0, 1.0, 0.0)
+            // );
+            let proj = vulkan_projection_correction * glam::Mat4::orthographic_rh_gl(
+                -half_extents_width,
+                half_extents_width,
+                -half_extents_height,
+                half_extents_height,
+                -100.0,
+                100.0
+            );
+
+            viewport.set_screen_space_view(proj /* * view*/);
+        }
+
+        viewport.set_viewport_size_in_pixels(glam::Vec2::new(
+            swapchain_surface_info.extents.width as f32,
+            swapchain_surface_info.extents.height as f32
+        ));
 
         //
         // Visibility

@@ -28,6 +28,7 @@ use std::ops::{Deref, DerefMut, Range};
 use legion_prefab::SpawnFrom;
 use legion_transaction::iter_components_in_storage;
 use crate::components::EditableHandle;
+use ncollide3d::shape::Cuboid;
 
 
 pub fn vec3_glam_to_glm(value: glam::Vec3) -> nalgebra_glm::Vec3 {
@@ -65,6 +66,7 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
             let asset_resource = resources.get::<AssetResource>().unwrap();
             if let Some(mesh) = mesh.asset(asset_resource.storage()) {
                 let bounding_sphere = &mesh.inner.asset.bounding_sphere;
+                let bounding_aabb = &mesh.inner.asset.bounding_aabb;
 
                 use ncollide3d::shape::ShapeHandle;
                 use ncollide3d::shape::Ball;
@@ -93,15 +95,38 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                     // }
 
 
-                    let shape_handle = ShapeHandle::new(Ball::new(
-                        bounding_sphere.radius
+                    // let shape_handle = ShapeHandle::new(Ball::new(
+                    //     bounding_sphere.radius
+                    // ));
+                    // let rotation = nalgebra::UnitQuaternion::identity();
+                    // collision_world.add(
+                    //     ncollide3d::math::Isometry::from_parts(
+                    //         nalgebra::Translation::from(vec3_glam_to_glm(*position.position + bounding_sphere.center)),
+                    //         rotation,
+                    //     ),
+                    //     shape_handle,
+                    //     CollisionGroups::new(),
+                    //     GeometricQueryType::Proximity(0.001),
+                    //     transformed_entity,
+                    // );
+
+                    let x = bounding_aabb.max.x() - bounding_aabb.min.x();
+                    let y = bounding_aabb.max.y() - bounding_aabb.min.y();
+                    let z = bounding_aabb.max.z() - bounding_aabb.min.z();
+                    let half_extents = glam::Vec3::new(x, y, z) / 2.0;
+
+                    let x = bounding_aabb.max.x() + bounding_aabb.min.x();
+                    let y = bounding_aabb.max.y() + bounding_aabb.min.y();
+                    let z = bounding_aabb.max.z() + bounding_aabb.min.z();
+                    let center = glam::Vec3::new(x, y, z) / 2.0;
+
+                    let shape_handle = ShapeHandle::new(Cuboid::new(
+                        ncollide3d::math::Vector::from(vec3_glam_to_glm(half_extents))
                     ));
                     let rotation = nalgebra::UnitQuaternion::identity();
-
-
                     collision_world.add(
                         ncollide3d::math::Isometry::from_parts(
-                            nalgebra::Translation::from(vec3_glam_to_glm(*position.position + bounding_sphere.center)),
+                            nalgebra::Translation::from(vec3_glam_to_glm(*position.position + center)),
                             rotation,
                         ),
                         shape_handle,

@@ -6,7 +6,7 @@ fn main() {
     let mut log_level = log::LevelFilter::Info;
     //#[cfg(debug_assertions)]
     {
-        log_level = log::LevelFilter::Trace;
+        log_level = log::LevelFilter::Debug;
     }
 
     // Setup logging
@@ -16,6 +16,7 @@ fn main() {
             "renderer_resources::resource_managers::descriptor_sets",
             log::LevelFilter::Info,
         )
+        .filter_module("minimum_editor::resources::editor_selection", log::LevelFilter::Trace)
         .filter_module("renderer_base", log::LevelFilter::Info)
         .filter_level(log_level)
         // .format(|buf, record| { //TODO: Get a frame count in here

@@ -18,6 +18,9 @@ pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
              world,
              debug_draw,
              (directional_light_query, point_light_query, spot_light_query)| {
+
+                debug_draw.add_sphere(glam::Vec3::new(0.0, 0.0, 0.0), 0.25, glam::Vec4::new(1.0, 1.0, 0.0, 1.0), DebugDraw3DDepthBehavior::NoDepthTest, 12);
+
                 for light in directional_light_query.iter(world) {
                     let light_from = glam::Vec3::new(0.0, 0.0, 0.0);
                     let light_to = light.direction;
