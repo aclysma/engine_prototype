@@ -17,20 +17,31 @@ mod write;
 
 pub use minimum::game::resources::LineList3D;
 pub use minimum::game::resources::DebugDraw3DResource;
+pub use minimum::game::resources::LineList2D;
+pub use minimum::game::resources::DebugDraw2DResource;
+use ash::vk::Extent2D;
 
 pub fn create_debug3d_extract_job(
     device_context: VkDeviceContext,
     descriptor_set_allocator: DescriptorSetAllocatorRef,
-    pipeline_info: PipelineSwapchainInfo,
-    pipeline_info_no_depth: PipelineSwapchainInfo,
-    debug3d_material: &Handle<MaterialAsset>,
+    extents: Extent2D,
+    pipeline_info_3d: PipelineSwapchainInfo,
+    pipeline_info_3d_no_depth: PipelineSwapchainInfo,
+    pipeline_info_2d: PipelineSwapchainInfo,
+    debug_material_3d: &Handle<MaterialAsset>,
+    debug_material_3d_no_depth: &Handle<MaterialAsset>,
+    debug_material_2d: &Handle<MaterialAsset>,
 ) -> Box<dyn ExtractJob<RenderJobExtractContext, RenderJobPrepareContext, RenderJobWriteContext>> {
     Box::new(Debug3dExtractJobImpl::new(
         device_context,
         descriptor_set_allocator,
-        pipeline_info,
-        pipeline_info_no_depth,
-        debug3d_material,
+        extents,
+        pipeline_info_3d,
+        pipeline_info_3d_no_depth,
+        pipeline_info_2d,
+        debug_material_3d.clone(),
+        debug_material_3d_no_depth.clone(),
+        debug_material_2d.clone()
     ))
 }
 
@@ -70,8 +81,9 @@ impl RenderFeature for Debug3dRenderFeature {
     }
 }
 
-pub(self) struct ExtractedDebug3dData {
-    line_lists: Vec<LineList3D>,
+pub(self) struct ExtractedDebugData {
+    line_lists_3d: Vec<LineList3D>,
+    line_lists_2d: Vec<LineList2D>,
 }
 
 #[derive(Debug)]

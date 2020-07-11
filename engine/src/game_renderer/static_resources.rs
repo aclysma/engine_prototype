@@ -58,8 +58,9 @@ fn wait_for_asset_to_load<T>(
 
 pub struct GameRendererStaticResources {
     pub sprite_material: Handle<MaterialAsset>,
-    pub debug3d_material: Handle<MaterialAsset>,
-    pub debug3d_material_no_depth: Handle<MaterialAsset>,
+    pub debug_material_3d: Handle<MaterialAsset>,
+    pub debug_material_3d_no_depth: Handle<MaterialAsset>,
+    pub debug_material_2d: Handle<MaterialAsset>,
     pub mesh_material: Handle<MaterialAsset>,
     pub bloom_extract_material: Handle<MaterialAsset>,
     pub bloom_blur_material: Handle<MaterialAsset>,
@@ -82,7 +83,7 @@ impl GameRendererStaticResources {
         //
         // Debug resources
         //
-        let debug_material = begin_load_asset::<MaterialAsset>(
+        let debug_material_3d = begin_load_asset::<MaterialAsset>(
             asset_uuid!("11d3b144-f564-42c9-b31f-82c8a938bf85"),
             resources,
         );
@@ -90,7 +91,7 @@ impl GameRendererStaticResources {
         //
         // Debug resources
         //
-        let debug_material_no_depth = begin_load_asset::<MaterialAsset>(
+        let debug_material_3d_no_depth = begin_load_asset::<MaterialAsset>(
             asset_uuid!("31c5d4f7-e330-4a02-9544-7cc6db2c4fb5"),
             resources,
         );
@@ -142,13 +143,13 @@ impl GameRendererStaticResources {
         )?;
 
         wait_for_asset_to_load(
-            &debug_material,
+            &debug_material_3d,
             resources,
             "debug material",
         )?;
 
         wait_for_asset_to_load(
-            &debug_material_no_depth,
+            &debug_material_3d_no_depth,
             resources,
             "debug material no depth",
         )?;
@@ -183,10 +184,13 @@ impl GameRendererStaticResources {
             "imgui material",
         )?;
 
+        let debug_material_2d = debug_material_3d_no_depth.clone();
+
         Ok(GameRendererStaticResources {
             sprite_material,
-            debug3d_material: debug_material,
-            debug3d_material_no_depth: debug_material_no_depth,
+            debug_material_3d,
+            debug_material_3d_no_depth,
+            debug_material_2d,
             mesh_material,
             bloom_extract_material,
             bloom_blur_material,

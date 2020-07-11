@@ -447,14 +447,20 @@ impl GameRenderer {
                 0,
             );
 
-            let debug3d_pipeline_info = resource_manager.get_pipeline_info(
-                &guard.static_resources.debug3d_material,
+            let debug_pipeline_info_3d = resource_manager.get_pipeline_info(
+                &guard.static_resources.debug_material_3d,
                 &swapchain_surface_info,
                 0,
             );
 
-            let debug3d_pipeline_info_no_depth = resource_manager.get_pipeline_info(
-                &guard.static_resources.debug3d_material_no_depth,
+            let debug_pipeline_info_3d_no_depth = resource_manager.get_pipeline_info(
+                &guard.static_resources.debug_material_3d_no_depth,
+                &swapchain_surface_info,
+                0,
+            );
+
+            let debug_pipeline_info_2d = resource_manager.get_pipeline_info(
+                &guard.static_resources.debug_material_2d,
                 &swapchain_surface_info,
                 0,
             );
@@ -486,9 +492,13 @@ impl GameRenderer {
             extract_job_set.add_job(create_debug3d_extract_job(
                 device_context.clone(),
                 resource_manager.create_descriptor_set_allocator(),
-                debug3d_pipeline_info,
-                debug3d_pipeline_info_no_depth,
-                &guard.static_resources.debug3d_material,
+                swapchain_surface_info.extents,
+                debug_pipeline_info_3d,
+                debug_pipeline_info_3d_no_depth,
+                debug_pipeline_info_2d,
+                &guard.static_resources.debug_material_3d,
+                &guard.static_resources.debug_material_3d_no_depth,
+                &guard.static_resources.debug_material_2d,
             ));
 
             extract_job_set.add_job(create_imgui_extract_job(
@@ -497,7 +507,6 @@ impl GameRenderer {
                 imgui_pipeline_info,
                 swapchain_surface_info.extents,
                 &guard.static_resources.imgui_material,
-                //guard.imgui_font_atlas.clone(),
                 guard.imgui_font_atlas_image_view.clone(),
             ));
 

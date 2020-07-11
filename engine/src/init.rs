@@ -16,7 +16,7 @@ use renderer::assets::ResourceManager;
 use crate::phases::{OpaqueRenderPhase, UiRenderPhase, PreUiRenderPhase};
 use crate::phases::TransparentRenderPhase;
 use crate::features::imgui::ImGuiRenderFeature;
-use minimum::resources::{AssetResource, ImguiResource};
+use minimum::resources::{AssetResource, ImguiResource, DebugDraw2DResource};
 use renderer::assets::{
     ShaderAsset, PipelineAsset, RenderpassAsset, MaterialAsset, MaterialInstanceAsset, ImageAsset,
     BufferAsset,
@@ -77,6 +77,7 @@ pub fn rendering_init(
     resources.insert(MeshRenderNodeSet::default());
     resources.insert(StaticVisibilityNodeSet::default());
     resources.insert(DynamicVisibilityNodeSet::default());
+    resources.insert(DebugDraw2DResource::new());
     resources.insert(DebugDraw3DResource::new());
 
     let mut context = VkContextBuilder::new()

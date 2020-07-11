@@ -2,9 +2,7 @@ use renderer::nodes::{
     RenderView, ViewSubmitNodes, FeatureSubmitNodes, FeatureCommandWriter, RenderFeatureIndex,
     FramePacket, RenderFeature, PrepareJob,
 };
-use crate::features::debug3d::{
-    Debug3dRenderFeature, ExtractedDebug3dData, Debug3dDrawCall, Debug3dVertex,
-};
+use crate::features::debug3d::{Debug3dRenderFeature, ExtractedDebugData, Debug3dDrawCall, Debug3dVertex, LineList2D};
 use crate::phases::{OpaqueRenderPhase, UiRenderPhase, PreUiRenderPhase};
 use super::write::Debug3dCommandWriter;
 use crate::render_contexts::{RenderJobWriteContext, RenderJobPrepareContext};
@@ -17,29 +15,35 @@ use renderer::vulkan::VkBufferRaw;
 
 pub struct Debug3dPrepareJobImpl {
     device_context: VkDeviceContext,
-    pipeline_info: PipelineSwapchainInfo,
-    pipeline_info_no_depth: PipelineSwapchainInfo,
+    pipeline_info_3d: PipelineSwapchainInfo,
+    pipeline_info_3d_no_depth: PipelineSwapchainInfo,
+    pipeline_info_2d: PipelineSwapchainInfo,
     dyn_resource_allocator: renderer::assets::DynResourceAllocatorSet,
-    descriptor_set_per_view: Vec<DescriptorSetArc>,
-    extracted_debug3d_data: ExtractedDebug3dData,
+    descriptor_set_per_view_3d: Vec<DescriptorSetArc>,
+    descriptor_set_2d: DescriptorSetArc,
+    extracted_debug_data: ExtractedDebugData,
 }
 
 impl Debug3dPrepareJobImpl {
     pub(super) fn new(
         device_context: VkDeviceContext,
-        pipeline_info: PipelineSwapchainInfo,
-        pipeline_info_no_depth: PipelineSwapchainInfo,
+        pipeline_info_3d: PipelineSwapchainInfo,
+        pipeline_info_3d_no_depth: PipelineSwapchainInfo,
+        pipeline_info_2d: PipelineSwapchainInfo,
         dyn_resource_allocator: renderer::assets::DynResourceAllocatorSet,
-        descriptor_set_per_view: Vec<DescriptorSetArc>,
-        extracted_debug3d_data: ExtractedDebug3dData,
+        descriptor_set_per_view_3d: Vec<DescriptorSetArc>,
+        descriptor_set_2d: DescriptorSetArc,
+        extracted_debug_data: ExtractedDebugData,
     ) -> Self {
         Debug3dPrepareJobImpl {
             device_context,
-            pipeline_info,
-            pipeline_info_no_depth,
+            pipeline_info_3d,
+            pipeline_info_3d_no_depth,
+            pipeline_info_2d,
             dyn_resource_allocator,
-            descriptor_set_per_view,
-            extracted_debug3d_data,
+            descriptor_set_per_view_3d,
+            descriptor_set_2d,
+            extracted_debug_data,
         }
     }
 }
@@ -57,21 +61,31 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
         //
         // Gather the raw draw data
         //
-        let line_lists = &self.extracted_debug3d_data.line_lists;
-        let mut draw_calls = Vec::with_capacity(line_lists.len());
-        let mut draw_calls_no_depth = Vec::with_capacity(line_lists.len());
+        let line_lists_3d = &self.extracted_debug_data.line_lists_3d;
+        let mut draw_calls_3d = Vec::with_capacity(line_lists_3d.len());
+        let mut draw_calls_3d_no_depth = Vec::with_capacity(line_lists_3d.len());
 
-        let mut vertex_list: Vec<Debug3dVertex> = vec![];
-        let mut vertex_list_no_depth: Vec<Debug3dVertex> = vec![];
-        for line_list in line_lists {
+        let mut vertex_list_3d: Vec<Debug3dVertex> = vec![];
+        let mut vertex_list_3d_no_depth: Vec<Debug3dVertex> = vec![];
+        for line_list in line_lists_3d {
             match line_list.depth_behavior {
-                DebugDraw3DDepthBehavior::Normal => Debug3dPrepareJobImpl::add_line_list(&mut vertex_list, &mut draw_calls, line_list),
-                DebugDraw3DDepthBehavior::NoDepthTest => Debug3dPrepareJobImpl::add_line_list(&mut vertex_list_no_depth, &mut draw_calls_no_depth, line_list)
+                DebugDraw3DDepthBehavior::Normal => Debug3dPrepareJobImpl::add_line_list_3d(&mut vertex_list_3d, &mut draw_calls_3d, line_list),
+                DebugDraw3DDepthBehavior::NoDepthTest => Debug3dPrepareJobImpl::add_line_list_3d(&mut vertex_list_3d_no_depth, &mut draw_calls_3d_no_depth, line_list)
             }
         }
 
-        let vertex_buffer = self.create_vertex_buffer(&mut draw_calls, vertex_list);
-        let vertex_buffer_no_depth = self.create_vertex_buffer(&mut draw_calls_no_depth, vertex_list_no_depth);
+        let vertex_buffer_3d = self.create_vertex_buffer(&mut draw_calls_3d, vertex_list_3d);
+        let vertex_buffer_3d_no_depth = self.create_vertex_buffer(&mut draw_calls_3d_no_depth, vertex_list_3d_no_depth);
+
+        let line_lists_2d = &self.extracted_debug_data.line_lists_2d;
+        let mut draw_calls_2d = Vec::with_capacity(line_lists_3d.len());
+        let mut vertex_list_2d: Vec<Debug3dVertex> = vec![];
+
+        for line_list in line_lists_2d {
+            Debug3dPrepareJobImpl::add_line_list_2d(&mut vertex_list_2d, &mut draw_calls_2d, line_list);
+        }
+
+        let vertex_buffer_2d = self.create_vertex_buffer(&mut draw_calls_2d, vertex_list_2d);
 
         //
         // Submit a single node for each view
@@ -83,17 +97,22 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
                 ViewSubmitNodes::new(self.feature_index(), view.render_phase_mask());
             view_submit_nodes.add_submit_node::<OpaqueRenderPhase>(0, 0, 0.0);
             view_submit_nodes.add_submit_node::<PreUiRenderPhase>(1, 0, 0.0);
+            view_submit_nodes.add_submit_node::<PreUiRenderPhase>(2, 0, 0.0);
             submit_nodes.add_submit_nodes_for_view(view, view_submit_nodes);
         }
 
         let writer = Box::new(Debug3dCommandWriter {
-            draw_calls,
-            vertex_buffer,
-            draw_calls_no_depth,
-            vertex_buffer_no_depth,
-            pipeline_info: self.pipeline_info,
-            pipeline_info_no_depth: self.pipeline_info_no_depth,
-            descriptor_set_per_view: self.descriptor_set_per_view,
+            draw_calls_3d,
+            vertex_buffer_3d,
+            draw_calls_3d_no_depth,
+            vertex_buffer_3d_no_depth,
+            draw_calls_2d,
+            vertex_buffer_2d,
+            pipeline_info_3d: self.pipeline_info_3d,
+            pipeline_info_3d_no_depth: self.pipeline_info_3d_no_depth,
+            pipeline_info_2d: self.pipeline_info_2d,
+            descriptor_set_per_view_3d: self.descriptor_set_per_view_3d,
+            descriptor_set_2d: self.descriptor_set_2d,
         });
 
         (writer, submit_nodes)
@@ -110,7 +129,7 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
 
 
 impl Debug3dPrepareJobImpl {
-    fn add_line_list(
+    fn add_line_list_3d(
         vertex_list: &mut Vec<Debug3dVertex>,
         draw_calls: &mut Vec<Debug3dDrawCall>,
         line_list: &LineList3D,
@@ -120,6 +139,28 @@ impl Debug3dPrepareJobImpl {
         for vertex_pos in &line_list.points {
             vertex_list.push(Debug3dVertex {
                 pos: (*vertex_pos).into(),
+                color: line_list.color.into(),
+            });
+        }
+
+        let draw_call = Debug3dDrawCall {
+            first_element: vertex_buffer_first_element,
+            count: line_list.points.len() as u32,
+        };
+
+        draw_calls.push(draw_call);
+    }
+
+    fn add_line_list_2d(
+        vertex_list: &mut Vec<Debug3dVertex>,
+        draw_calls: &mut Vec<Debug3dDrawCall>,
+        line_list: &LineList2D,
+    ) {
+        let vertex_buffer_first_element = vertex_list.len() as u32;
+
+        for vertex_pos in &line_list.points {
+            vertex_list.push(Debug3dVertex {
+                pos: (*vertex_pos).extend(0.0).into(),
                 color: line_list.color.into(),
             });
         }

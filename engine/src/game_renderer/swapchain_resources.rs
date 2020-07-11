@@ -130,7 +130,7 @@ impl SwapchainResources {
         bloom_combine_material_dyn_set.flush(&mut descriptor_set_allocator)?;
 
         let debug_per_frame_layout = resource_manager.get_descriptor_set_info(
-            &game_renderer.static_resources.debug3d_material,
+            &game_renderer.static_resources.debug_material_3d,
             0,
             0,
         );
