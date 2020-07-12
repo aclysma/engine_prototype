@@ -299,7 +299,7 @@ impl GameRenderer {
         let (main_view, view_proj) = {
             let camera_rotate_speed = 1.0;
             let camera_distance_multiplier = 1.0;
-            let loop_time = time_resource.simulation_time.total_time().as_secs_f32();
+            let loop_time = time_resource.simulation_time.total_time().as_secs_f32() + 0.0;
             let eye = glam::Vec3::new(
                 camera_distance_multiplier * 8.0 * f32::cos(camera_rotate_speed * loop_time / 2.0),
                 camera_distance_multiplier * 8.0 * f32::sin(camera_rotate_speed * loop_time / 2.0),
@@ -341,7 +341,7 @@ impl GameRenderer {
             viewport.set_world_space_view(
                 proj,
                 view,
-                // eye,
+                eye,
                 // dir,
                 // up,
                 // fov,

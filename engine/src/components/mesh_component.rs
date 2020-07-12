@@ -71,21 +71,29 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                 use ncollide3d::shape::ShapeHandle;
                 use ncollide3d::shape::Ball;
                 if let Some(position) = prefab_world.get_component::<PositionComponent>(prefab_entity) {
+                    let x = bounding_aabb.max.x() - bounding_aabb.min.x();
+                    let y = bounding_aabb.max.y() - bounding_aabb.min.y();
+                    let z = bounding_aabb.max.z() - bounding_aabb.min.z();
+                    let mut half_extents = glam::Vec3::new(x, y, z) / 2.0;
 
+                    let x = bounding_aabb.max.x() + bounding_aabb.min.x();
+                    let y = bounding_aabb.max.y() + bounding_aabb.min.y();
+                    let z = bounding_aabb.max.z() + bounding_aabb.min.z();
+                    let center = glam::Vec3::new(x, y, z) / 2.0;
 
-                    //let mut half_extents = *self.half_extents;
+                    //let mut half_extents = *bounding_aabb;
 
-                    // if let Some(uniform_scale) =
-                    // prefab_world.get_component::<UniformScaleComponent>(prefab_entity)
-                    // {
-                    //     half_extents *= uniform_scale.uniform_scale;
-                    // }
-                    //
-                    // if let Some(non_uniform_scale) =
-                    // prefab_world.get_component::<NonUniformScaleComponent>(prefab_entity)
-                    // {
-                    //     half_extents *= *non_uniform_scale.non_uniform_scale;
-                    // }
+                    if let Some(uniform_scale) =
+                        prefab_world.get_component::<UniformScaleComponent>(prefab_entity)
+                    {
+                        half_extents *= uniform_scale.uniform_scale;
+                    }
+
+                    if let Some(non_uniform_scale) =
+                        prefab_world.get_component::<NonUniformScaleComponent>(prefab_entity)
+                    {
+                        half_extents *= *non_uniform_scale.non_uniform_scale;
+                    }
 
                     // let mut rotation = 0.0;
                     // if let Some(rotation_component) =
@@ -110,15 +118,9 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                     //     transformed_entity,
                     // );
 
-                    let x = bounding_aabb.max.x() - bounding_aabb.min.x();
-                    let y = bounding_aabb.max.y() - bounding_aabb.min.y();
-                    let z = bounding_aabb.max.z() - bounding_aabb.min.z();
-                    let half_extents = glam::Vec3::new(x, y, z) / 2.0;
-
-                    let x = bounding_aabb.max.x() + bounding_aabb.min.x();
-                    let y = bounding_aabb.max.y() + bounding_aabb.min.y();
-                    let z = bounding_aabb.max.z() + bounding_aabb.min.z();
-                    let center = glam::Vec3::new(x, y, z) / 2.0;
+                    half_extents.set_x(half_extents.x().abs().max(0.001));
+                    half_extents.set_y(half_extents.y().abs().max(0.001));
+                    half_extents.set_z(half_extents.z().abs().max(0.001));
 
                     let shape_handle = ShapeHandle::new(Cuboid::new(
                         ncollide3d::math::Vector::from(vec3_glam_to_glm(half_extents))

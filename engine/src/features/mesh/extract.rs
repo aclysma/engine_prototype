@@ -19,7 +19,7 @@ use legion::prelude::*;
 use crate::components::MeshComponent;
 use crate::game_resource_manager::GameResourceManager;
 use renderer::assets::MaterialAsset;
-use minimum::components::PositionComponent;
+use minimum::components::{PositionComponent, UniformScaleComponent, NonUniformScaleComponent};
 
 pub struct MeshExtractJobImpl {
     descriptor_set_allocator: DescriptorSetAllocatorRef,
@@ -126,7 +126,23 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             })
             .collect();
 
-        let world_transform = glam::Mat4::from_translation(*position_component.position);
+        // This is pretty ugly but temporary
+        let mut world_transform = glam::Mat4::identity();
+        if let Some(uniform_scale_component) = extract_context
+            .world
+            .get_component::<UniformScaleComponent>(mesh_render_node.entity) {
+            world_transform = glam::Mat4::from_scale(
+                glam::Vec3::new(uniform_scale_component.uniform_scale, uniform_scale_component.uniform_scale, uniform_scale_component.uniform_scale)) * world_transform;
+        }
+
+        if let Some(non_uniform_scale_component) = extract_context
+            .world
+            .get_component::<NonUniformScaleComponent>(mesh_render_node.entity) {
+            world_transform = glam::Mat4::from_scale(*non_uniform_scale_component.non_uniform_scale) * world_transform;
+        }
+
+        world_transform = glam::Mat4::from_translation(*position_component.position) * world_transform;
+
 
         self.extracted_frame_node_mesh_data
             .push(Some(ExtractedFrameNodeMeshData {

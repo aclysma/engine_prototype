@@ -1,6 +1,6 @@
 (
     version: 1,
-    import_hash: Some(1175768500633069443),
+    import_hash: Some(11273620898247153407),
     importer_version: 1,
     importer_type: "5bdf4d06-a1cb-437b-b182-d6d8cb23512c",
     importer_options: (),
@@ -15,7 +15,7 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 10470822530279667984,
+                hash: 4902944103898708692,
                 id: "2aad7b4c-a323-415a-bea6-ae0f945446b9",
                 build_deps: [
                     Uuid("ffc9b240-0a17-4ff4-bb7d-72d13cc6e261"),
