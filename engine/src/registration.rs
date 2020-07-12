@@ -67,6 +67,7 @@ pub fn create_editor_inspector_registry() -> EditorInspectRegistry {
         .register::<UniformScaleComponent>()
         .register::<NonUniformScaleComponent>()
         .register::<Rotation2DComponent>()
+        .register::<RotationComponent>()
         .register::<PointLightComponent>()
         .register::<MeshComponentDef>()
         // .register::<RigidBodyBallComponentDef>()

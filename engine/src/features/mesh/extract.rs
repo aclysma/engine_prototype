@@ -19,7 +19,7 @@ use legion::prelude::*;
 use crate::components::MeshComponent;
 use crate::game_resource_manager::GameResourceManager;
 use renderer::assets::MaterialAsset;
-use minimum::components::{PositionComponent, UniformScaleComponent, NonUniformScaleComponent};
+use minimum::components::{PositionComponent, UniformScaleComponent, NonUniformScaleComponent, RotationComponent};
 
 pub struct MeshExtractJobImpl {
     descriptor_set_allocator: DescriptorSetAllocatorRef,
@@ -139,6 +139,12 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .world
             .get_component::<NonUniformScaleComponent>(mesh_render_node.entity) {
             world_transform = glam::Mat4::from_scale(*non_uniform_scale_component.non_uniform_scale) * world_transform;
+        }
+
+        if let Some(rotation_component) = extract_context
+            .world
+            .get_component::<RotationComponent>(mesh_render_node.entity) {
+            world_transform = glam::Mat4::from_quat(rotation_component.to_quat()) * world_transform;
         }
 
         world_transform = glam::Mat4::from_translation(*position_component.position) * world_transform;
