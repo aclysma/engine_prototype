@@ -7,7 +7,7 @@ Prefab(
                 EntityComponent(
                     type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
                     data: PointLightComponent(
-                        color: Vec4(0, 1, 1, 0),
+                        color: Vec3(0, 1, 1),
                         range: 100,
                         intensity: 100,
                     ),
@@ -29,7 +29,7 @@ Prefab(
                 EntityComponent(
                     type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
                     data: PointLightComponent(
-                        color: Vec4(1, 0, 0, 0),
+                        color: Vec3(1, 0, 0),
                         range: 10,
                         intensity: 20,
                     ),

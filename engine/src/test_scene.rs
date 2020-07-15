@@ -151,7 +151,7 @@ pub fn populate_test_lights(
         world,
         glam::Vec3::new(-3.0, -3.0, 3.0),
         PointLightComponent {
-            color: [1.0, 1.0, 1.0, 1.0].into(),
+            color: [1.0, 1.0, 1.0].into(),
             intensity: 130.0,
             range: 25.0,
         },
@@ -162,7 +162,7 @@ pub fn populate_test_lights(
         world,
         glam::Vec3::new(-3.0, 3.0, 3.0),
         PointLightComponent {
-            color: [1.0, 1.0, 1.0, 1.0].into(),
+            color: [1.0, 1.0, 1.0].into(),
             intensity: 130.0,
             range: 25.0,
         },
@@ -179,7 +179,7 @@ pub fn populate_test_lights(
             direction: light_direction,
             spotlight_half_angle: 10.0 * (std::f32::consts::PI / 180.0),
             range: 8.0,
-            color: [1.0, 1.0, 1.0, 1.0].into(),
+            color: [1.0, 1.0, 1.0].into(),
             intensity: 1000.0,
         },
     );
@@ -193,7 +193,7 @@ pub fn populate_test_lights(
         DirectionalLightComponent {
             direction: light_direction,
             intensity: 5.0,
-            color: [1.0, 1.0, 1.0, 1.0].into(),
+            color: [1.0, 1.0, 1.0].into(),
         },
     );
 }

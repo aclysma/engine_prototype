@@ -206,7 +206,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             let out = &mut per_view_data.directional_lights[light_count];
             out.direction_ws = light_direction.into();
             out.direction_vs = light_direction_vs.into();
-            out.color = light.color;
+            out.color = light.color.extend(1.0);
             out.intensity = light.intensity;
 
             per_view_data.directional_light_count += 1;
@@ -222,7 +222,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             let out = &mut per_view_data.point_lights[light_count];
             out.position_ws = transform.position();
             out.position_vs = (view.view_matrix() * transform.position().extend(1.0)).truncate();
-            out.color = *light.color;
+            out.color = light.color.extend(1.0);
             out.range = light.range;
             out.intensity = light.intensity * transform.uniform_scale().abs();
 
@@ -250,7 +250,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             out.direction_ws = light_direction.into();
             out.direction_vs = light_direction_vs.into();
             out.spotlight_half_angle = light.spotlight_half_angle;
-            out.color = light.color;
+            out.color = light.color.extend(1.0);
             out.range = light.range;
             out.intensity = light.intensity * transform.uniform_scale().abs();
 

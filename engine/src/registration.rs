@@ -57,6 +57,7 @@ pub fn create_editor_selection_registry() -> EditorSelectRegistry {
         // .register_transformed::<RigidBodyBallComponentDef, RigidBodyComponent>()
         //.register::<PointLightComponent>()
         .register_transformed::<MeshComponentDef, MeshComponent>()
+        .register::<PointLightComponent>()
         .build()
 }
 

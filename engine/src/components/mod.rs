@@ -46,14 +46,14 @@ pub use point_light_component::PointLightComponent;
 #[derive(Clone)]
 pub struct DirectionalLightComponent {
     pub direction: glam::Vec3,
-    pub color: glam::Vec4,
+    pub color: glam::Vec3,
     pub intensity: f32,
 }
 
 #[derive(Clone)]
 pub struct SpotLightComponent {
     pub direction: glam::Vec3,
-    pub color: glam::Vec4,
+    pub color: glam::Vec3,
     pub spotlight_half_angle: f32,
     pub range: f32,
     pub intensity: f32,
