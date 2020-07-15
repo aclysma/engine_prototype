@@ -17,7 +17,7 @@ use renderer::visibility::DynamicAabbVisibilityNode;
 use imgui_inspect_derive::Inspect;
 use legion::prelude::{Entity, Resources, World, EntityStore};
 use minimum::resources::editor::OpenedPrefabState;
-use minimum::components::{UniformScaleComponent, NonUniformScaleComponent, Rotation2DComponent, PositionComponent};
+use minimum::components::{TransformComponentDef};
 use ncollide3d::pipeline::{CollisionGroups, GeometricQueryType};
 use ncollide3d::world::CollisionWorld;
 use minimum::resources::AssetResource;

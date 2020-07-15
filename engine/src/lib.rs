@@ -108,7 +108,7 @@ pub fn run() {
 
     // test_scene::populate_test_sprite_entities(&mut resources, &mut world);
     //test_scene::populate_test_mesh_entities(&mut resources, &mut world);
-    test_scene::populate_test_lights(&mut resources, &mut world);
+    //test_scene::populate_test_lights(&mut resources, &mut world);
 
     let mut schedule_manager = ScheduleManager::new();
 

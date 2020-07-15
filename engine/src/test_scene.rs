@@ -14,7 +14,7 @@ use atelier_assets::core as atelier_core;
 use atelier_assets::core::AssetUuid;
 use crate::components::MeshComponent;
 use crate::assets::gltf::MeshAsset;
-use minimum::components::PositionComponent;
+use minimum::components::{TransformComponentDef, TransformComponent};
 
 fn begin_load_asset<T>(
     asset_uuid: AssetUuid,
@@ -67,7 +67,8 @@ pub fn populate_test_sprite_entities(
             // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
             let visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
 
-            let position_component = PositionComponent { position: position.into() };
+            let mut transform_component = TransformComponentDef::default();
+            *transform_component.position_mut() = position;
             let sprite_component = SpriteComponent {
                 sprite_handle,
                 visibility_handle,
@@ -77,10 +78,8 @@ pub fn populate_test_sprite_entities(
 
             let entity = world.insert(
                 (),
-                (0..1).map(|_| (position_component.clone(), sprite_component.clone())),
+                (0..1).map(|_| (transform_component.clone(), sprite_component.clone())),
             )[0];
-
-            world.get_component::<PositionComponent>(entity).unwrap();
 
             SpriteRenderNode {
                 entity, // sprite asset
@@ -127,16 +126,14 @@ pub fn populate_test_mesh_entities(
             // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
             let visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
 
-            let position_component = PositionComponent { position: position.into() };
+            let transform_component = TransformComponent::from_position(position);
             let mesh_component = MeshComponent {
                 mesh_handle,
                 visibility_handle,
                 mesh: Some(mesh.clone()),
             };
 
-            let entity = world.insert((), vec![(position_component, mesh_component)])[0];
-
-            world.get_component::<PositionComponent>(entity).unwrap();
+            let entity = world.insert((), vec![(transform_component, mesh_component)])[0];
 
             MeshRenderNode {
                 entity, // sprite asset
@@ -215,9 +212,9 @@ fn add_spot_light(
     position: glam::Vec3,
     light_component: SpotLightComponent,
 ) {
-    let position_component = PositionComponent { position: position.into() };
+    let transform_component = TransformComponent::from_position(position);
 
-    world.insert((), vec![(position_component, light_component)]);
+    world.insert((), vec![(transform_component, light_component)]);
 }
 
 fn add_point_light(
@@ -226,7 +223,7 @@ fn add_point_light(
     position: glam::Vec3,
     light_component: PointLightComponent,
 ) {
-    let position_component = PositionComponent { position: position.into() };
+    let transform_component = TransformComponent::from_position(position);
 
-    world.insert((), vec![(position_component, light_component)]);
+    world.insert((), vec![(transform_component, light_component)]);
 }

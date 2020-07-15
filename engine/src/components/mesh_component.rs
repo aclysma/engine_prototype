@@ -17,7 +17,7 @@ use renderer::visibility::DynamicAabbVisibilityNode;
 use imgui_inspect_derive::Inspect;
 use legion::prelude::{Entity, Resources, World, EntityStore};
 use minimum::resources::editor::OpenedPrefabState;
-use minimum::components::{UniformScaleComponent, NonUniformScaleComponent, Rotation2DComponent, PositionComponent, RotationComponent};
+use minimum::components::{TransformComponentDef};
 use ncollide3d::pipeline::{CollisionGroups, GeometricQueryType};
 use ncollide3d::world::CollisionWorld;
 use minimum::resources::AssetResource;
@@ -70,7 +70,7 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
 
                 use ncollide3d::shape::ShapeHandle;
                 use ncollide3d::shape::Ball;
-                if let Some(position) = prefab_world.get_component::<PositionComponent>(prefab_entity) {
+                if let Some(transform) = prefab_world.get_component::<TransformComponentDef>(prefab_entity) {
                     let x = bounding_aabb.max.x() - bounding_aabb.min.x();
                     let y = bounding_aabb.max.y() - bounding_aabb.min.y();
                     let z = bounding_aabb.max.z() - bounding_aabb.min.z();
@@ -81,24 +81,8 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                     let z = bounding_aabb.max.z() + bounding_aabb.min.z();
                     let center = glam::Vec3::new(x, y, z) / 2.0;
 
-                    if let Some(uniform_scale) =
-                        prefab_world.get_component::<UniformScaleComponent>(prefab_entity)
-                    {
-                        half_extents *= uniform_scale.uniform_scale;
-                    }
-
-                    if let Some(non_uniform_scale) =
-                        prefab_world.get_component::<NonUniformScaleComponent>(prefab_entity)
-                    {
-                        half_extents *= *non_uniform_scale.non_uniform_scale;
-                    }
-
-                    let mut rotation = glam::Quat::identity();
-                    if let Some(rotation_component) =
-                        prefab_world.get_component::<RotationComponent>(prefab_entity)
-                    {
-                        rotation = rotation_component.to_quat();
-                    }
+                    half_extents *= transform.scale();
+                    let rotation = transform.rotation_quat();
 
                     half_extents.set_x(half_extents.x().abs().max(0.001));
                     half_extents.set_y(half_extents.y().abs().max(0.001));
@@ -111,7 +95,7 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                     let rotation = nalgebra::UnitQuaternion::from_quaternion(rotation);
                     collision_world.add(
                         ncollide3d::math::Isometry::from_parts(
-                            nalgebra::Translation::from(vec3_glam_to_glm(*position.position + center)),
+                            nalgebra::Translation::from(vec3_glam_to_glm(transform.position() + center)),
                             rotation,
                         ),
                         shape_handle,

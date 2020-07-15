@@ -45,6 +45,7 @@ pub fn create_component_registry() -> ComponentRegistry {
         // .add_spawn_mapping::<RigidBodyBallComponentDef, RigidBodyComponent>()
         // .add_spawn_mapping::<RigidBodyBoxComponentDef, RigidBodyComponent>()
         .add_spawn_mapping::<MeshComponentDef, MeshComponent>()
+        .add_spawn_mapping_into::<TransformComponentDef, TransformComponent>()
         .build()
 }
 
@@ -63,11 +64,7 @@ pub fn create_editor_inspector_registry() -> EditorInspectRegistry {
     EditorInspectRegistryBuilder::default()
         // .register::<DrawSkiaCircleComponentDef>()
         // .register::<DrawSkiaBoxComponentDef>()
-        .register::<PositionComponent>()
-        .register::<UniformScaleComponent>()
-        .register::<NonUniformScaleComponent>()
-        .register::<Rotation2DComponent>()
-        .register::<RotationComponent>()
+        .register::<TransformComponentDef>()
         .register::<PointLightComponent>()
         .register::<MeshComponentDef>()
         // .register::<RigidBodyBallComponentDef>()

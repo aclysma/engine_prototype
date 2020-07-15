@@ -2,6 +2,28 @@ Prefab(
     id: "2aad7b4c-a323-415a-bea6-ae0f945446b9",
     objects: [
         Entity(PrefabEntity(
+            id: "fa52be99-471c-475e-9123-16f4c9bde43b",
+            components: [
+                EntityComponent(
+                    type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
+                    data: PointLightComponent(
+                        color: Vec4(0, 1, 1, 0),
+                        range: 100,
+                        intensity: 100,
+                    ),
+                ),
+                EntityComponent(
+                    type: "35657365-bb0c-4306-8c69-d5e158ad978f",
+                    data: TransformComponentDef(
+                        position: Vec3(0, 0, 0),
+                        rotation: Vec3(0, 0, 0),
+                        scale: 1,
+                        non_uniform_scale: Vec3(1, 1, 1),
+                    ),
+                ),
+            ],
+        )),
+        Entity(PrefabEntity(
             id: "914fd621-109c-4b27-a9a7-51dc9eb4d8d6",
             components: [
                 EntityComponent(
@@ -13,9 +35,12 @@ Prefab(
                     ),
                 ),
                 EntityComponent(
-                    type: "8bf67228-f96c-4649-b306-ecd107194cf0",
-                    data: PositionComponent(
+                    type: "35657365-bb0c-4306-8c69-d5e158ad978f",
+                    data: TransformComponentDef(
                         position: Vec3(0, 0, 0),
+                        rotation: Vec3(0, 0, 0),
+                        scale: 1,
+                        non_uniform_scale: Vec3(1, 1, 1),
                     ),
                 ),
             ],
@@ -47,28 +72,12 @@ Prefab(
                     ),
                 ),
                 EntityComponent(
-                    type: "8bf67228-f96c-4649-b306-ecd107194cf0",
-                    data: PositionComponent(
-                        position: Vec3(0, 1, 0),
-                    ),
-                ),
-            ],
-        )),
-        Entity(PrefabEntity(
-            id: "fa52be99-471c-475e-9123-16f4c9bde43b",
-            components: [
-                EntityComponent(
-                    type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
-                    data: PointLightComponent(
-                        color: Vec4(0, 1, 1, 0),
-                        range: 100,
-                        intensity: 100,
-                    ),
-                ),
-                EntityComponent(
-                    type: "8bf67228-f96c-4649-b306-ecd107194cf0",
-                    data: PositionComponent(
-                        position: Vec3(4, 1, 1),
+                    type: "35657365-bb0c-4306-8c69-d5e158ad978f",
+                    data: TransformComponentDef(
+                        position: Vec3(0, 1.6022046, 0),
+                        rotation: Vec3(0, 0, 0),
+                        scale: 1,
+                        non_uniform_scale: Vec3(1, 1, 1),
                     ),
                 ),
             ],

@@ -15,7 +15,7 @@ use atelier_assets::loader::handle::Handle;
 use renderer::assets::resources::DescriptorSetArc;
 use legion::prelude::EntityStore;
 use renderer::assets::MaterialAsset;
-use minimum::components::PositionComponent;
+use minimum::components::{TransformComponentDef, TransformComponent};
 
 // This is almost copy-pasted from glam. I wanted to avoid pulling in the entire library for a
 // single function
@@ -146,7 +146,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 
         let position_component = extract_context
             .world
-            .get_component::<PositionComponent>(sprite_render_node.entity)
+            .get_component::<TransformComponent>(sprite_render_node.entity)
             .unwrap();
         let sprite_component = extract_context
             .world
@@ -179,7 +179,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 
         self.extracted_frame_node_sprite_data
             .push(Some(ExtractedSpriteData {
-                position: *position_component.position,
+                position: position_component.position(),
                 texture_size: glam::Vec2::new(50.0, 50.0),
                 scale: 1.0,
                 rotation: 0.0,

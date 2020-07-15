@@ -916,6 +916,10 @@ fn extract_meshes_to_import(
                 Handle::<BufferAsset>::new(ref_op_sender.clone(), load_handle)
             });
 
+        if bounding_aabb.is_none() {
+            bounding_aabb = Some(BoundingAabb::new(glam::Vec3::zero()));
+        }
+
         let bounding_aabb = bounding_aabb.unwrap();
         let bounding_sphere = bounding_aabb.calculate_bounding_sphere();
 

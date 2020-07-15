@@ -19,7 +19,7 @@ use legion::prelude::*;
 use crate::components::MeshComponent;
 use crate::game_resource_manager::GameResourceManager;
 use renderer::assets::MaterialAsset;
-use minimum::components::{PositionComponent, UniformScaleComponent, NonUniformScaleComponent, RotationComponent};
+use minimum::components::{TransformComponent};
 
 pub struct MeshExtractJobImpl {
     descriptor_set_allocator: DescriptorSetAllocatorRef,
@@ -82,9 +82,10 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .unwrap();
         let mesh_render_node = mesh_nodes.meshes.get(render_node_handle).unwrap();
 
-        let position_component = extract_context
+        //TODO: Do this with queries? Probably requires moving the mesh node system data into ECS
+        let transform_component = extract_context
             .world
-            .get_component::<PositionComponent>(mesh_render_node.entity);
+            .get_component::<TransformComponent>(mesh_render_node.entity);
         let mesh_component = extract_context
             .world
             .get_component::<MeshComponent>(mesh_render_node.entity);
@@ -92,11 +93,11 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .resources
             .get::<GameResourceManager>();
 
-        if position_component.is_none() || mesh_component.is_none() || game_resource_manager.is_none() {
+        if transform_component.is_none() || mesh_component.is_none() || game_resource_manager.is_none() {
             self.extracted_frame_node_mesh_data.push(None);
             return;
         }
-        let position_component = position_component.unwrap();
+        let transform_component = transform_component.unwrap();
         let mesh_component = mesh_component.unwrap();
         let game_resource_manager = game_resource_manager.unwrap();
 
@@ -126,29 +127,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             })
             .collect();
 
-        // This is pretty ugly but temporary
-        let mut world_transform = glam::Mat4::identity();
-        if let Some(uniform_scale_component) = extract_context
-            .world
-            .get_component::<UniformScaleComponent>(mesh_render_node.entity) {
-            world_transform = glam::Mat4::from_scale(
-                glam::Vec3::new(uniform_scale_component.uniform_scale, uniform_scale_component.uniform_scale, uniform_scale_component.uniform_scale)) * world_transform;
-        }
-
-        if let Some(non_uniform_scale_component) = extract_context
-            .world
-            .get_component::<NonUniformScaleComponent>(mesh_render_node.entity) {
-            world_transform = glam::Mat4::from_scale(*non_uniform_scale_component.non_uniform_scale) * world_transform;
-        }
-
-        if let Some(rotation_component) = extract_context
-            .world
-            .get_component::<RotationComponent>(mesh_render_node.entity) {
-            world_transform = glam::Mat4::from_quat(rotation_component.to_quat()) * world_transform;
-        }
-
-        world_transform = glam::Mat4::from_translation(*position_component.position) * world_transform;
-
+        let world_transform = transform_component.transform();
 
         self.extracted_frame_node_mesh_data
             .push(Some(ExtractedFrameNodeMeshData {
@@ -233,34 +212,34 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             per_view_data.directional_light_count += 1;
         }
 
-        let query = <(Read<PositionComponent>, Read<PointLightComponent>)>::query();
-        for (position, light) in query.iter(extract_context.world) {
+        let query = <(Read<TransformComponent>, Read<PointLightComponent>)>::query();
+        for (transform, light) in query.iter(extract_context.world) {
             let light_count = per_view_data.point_light_count as usize;
             if light_count > per_view_data.point_lights.len() {
                 break;
             }
 
             let out = &mut per_view_data.point_lights[light_count];
-            out.position_ws = *position.position;
-            out.position_vs = (view.view_matrix() * position.position.extend(1.0)).truncate();
+            out.position_ws = transform.position();
+            out.position_vs = (view.view_matrix() * transform.position().extend(1.0)).truncate();
             out.color = *light.color;
             out.range = light.range;
-            out.intensity = light.intensity;
+            out.intensity = light.intensity * transform.uniform_scale().abs();
 
             per_view_data.point_light_count += 1;
         }
 
-        let query = <(Read<PositionComponent>, Read<SpotLightComponent>)>::query();
-        for (position, light) in query.iter(extract_context.world) {
+        let query = <(Read<TransformComponent>, Read<SpotLightComponent>)>::query();
+        for (transform, light) in query.iter(extract_context.world) {
             let light_count = per_view_data.spot_light_count as usize;
             if light_count > per_view_data.spot_lights.len() {
                 break;
             }
 
-            let light_from = *position.position;
-            let light_from_vs = (view.view_matrix() * light_from.extend(1.0)).truncate();
-            let light_to = *position.position + light.direction;
-            let light_to_vs = (view.view_matrix() * light_to.extend(1.0)).truncate();
+            let light_from = transform.position();
+            let light_from_vs = (view.view_matrix().transform_point3(light_from));
+            let light_to = transform.position() + light.direction;
+            let light_to_vs = (view.view_matrix().transform_point3(light_to));
 
             let light_direction = (light_to - light_from).normalize();
             let light_direction_vs = (light_to_vs - light_from_vs).normalize();
@@ -273,7 +252,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             out.spotlight_half_angle = light.spotlight_half_angle;
             out.color = light.color;
             out.range = light.range;
-            out.intensity = light.intensity;
+            out.intensity = light.intensity * transform.uniform_scale().abs();
 
             per_view_data.spot_light_count += 1;
         }

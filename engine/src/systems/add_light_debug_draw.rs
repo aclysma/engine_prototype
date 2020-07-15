@@ -5,14 +5,14 @@ use crate::components::{
     DirectionalLightComponent, PointLightComponent, SpotLightComponent,
 };
 use minimum::resources::{DebugDraw3DResource, DebugDraw3DDepthBehavior};
-use minimum::components::PositionComponent;
+use minimum::components::TransformComponentDef;
 
 pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
     SystemBuilder::new("quit_if_escape_pressed")
         .write_resource::<DebugDraw3DResource>()
         .with_query(<Read<DirectionalLightComponent>>::query())
-        .with_query(<(Read<PositionComponent>, Read<PointLightComponent>)>::query())
-        .with_query(<(Read<PositionComponent>, Read<SpotLightComponent>)>::query())
+        .with_query(<(Read<TransformComponentDef>, Read<PointLightComponent>)>::query())
+        .with_query(<(Read<TransformComponentDef>, Read<SpotLightComponent>)>::query())
         .build(
             |_,
              world,
