@@ -6,7 +6,7 @@ members = [
 exclude = [
     "atelier-assets",
     "renderer",
-    "minimum"
+    #"minimum"
 ]
 
 #[profile.dev.overrides.bincode]
@@ -34,11 +34,10 @@ opt-level = 2
 [patch."https://github.com/amethyst/atelier-assets"]
 atelier-assets = { path = "atelier-assets" }
 
-
 [patch."https://github.com/aclysma/minimum"]
 minimum = { path = "minimum/minimum" }
 minimum-sdl2 = { path = "minimum/contrib/minimum-sdl2" }
 
-
-#[patch."https://github.com/aclysma/renderer_prototype"]
-#renderer = { path = "renderer/renderer" }
+[patch."https://github.com/aclysma/renderer_prototype"]
+renderer = { path = "renderer/renderer" }
+renderer-shell-vulkan-sdl2 = { path = "renderer/renderer-shell-vulkan-sdl2" }
