@@ -2,22 +2,37 @@ Prefab(
     id: "2aad7b4c-a323-415a-bea6-ae0f945446b9",
     objects: [
         Entity(PrefabEntity(
-            id: "fa52be99-471c-475e-9123-16f4c9bde43b",
+            id: "e938c98b-df7e-41d7-a2e4-9f028702b022",
             components: [
                 EntityComponent(
-                    type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
-                    data: PointLightComponent(
-                        color: Vec3(0, 1, 1),
-                        range: 100,
-                        intensity: 100,
+                    type: "46b6a84c-f224-48ac-a56d-46971bcaf7f1",
+                    data: MeshComponentDef(
+                        mesh: Some([
+                            224,
+                            215,
+                            176,
+                            111,
+                            188,
+                            90,
+                            73,
+                            59,
+                            148,
+                            187,
+                            5,
+                            221,
+                            226,
+                            119,
+                            243,
+                            176,
+                        ]),
                     ),
                 ),
                 EntityComponent(
                     type: "35657365-bb0c-4306-8c69-d5e158ad978f",
                     data: TransformComponentDef(
-                        position: Vec3(0, 0, 0),
-                        rotation: Vec3(0, 0, 0),
-                        scale: 1,
+                        position: Vec3(0, -0.30648625, 0),
+                        rotation: Vec3(0, -1.6, 0),
+                        scale: -0.01,
                         non_uniform_scale: Vec3(1, 1, 1),
                     ),
                 ),
@@ -29,7 +44,7 @@ Prefab(
                 EntityComponent(
                     type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
                     data: PointLightComponent(
-                        color: Vec3(1, 0, 0),
+                        color: Vec3(1, 1, 1),
                         range: 10,
                         intensity: 20,
                     ),
@@ -37,7 +52,7 @@ Prefab(
                 EntityComponent(
                     type: "35657365-bb0c-4306-8c69-d5e158ad978f",
                     data: TransformComponentDef(
-                        position: Vec3(0, 0, 0),
+                        position: Vec3(-6.1713524, -0.13652176, 1.2489204),
                         rotation: Vec3(0, 0, 0),
                         scale: 1,
                         non_uniform_scale: Vec3(1, 1, 1),
@@ -46,35 +61,42 @@ Prefab(
             ],
         )),
         Entity(PrefabEntity(
-            id: "e938c98b-df7e-41d7-a2e4-9f028702b022",
+            id: "ab4307b7-707a-4e14-b438-a909f37bdf8a",
             components: [
                 EntityComponent(
-                    type: "46b6a84c-f224-48ac-a56d-46971bcaf7f1",
-                    data: MeshComponentDef(
-                        mesh: Some([
-                            255,
-                            201,
-                            178,
-                            64,
-                            10,
-                            23,
-                            79,
-                            244,
-                            187,
-                            125,
-                            114,
-                            209,
-                            60,
-                            198,
-                            226,
-                            97,
-                        ]),
+                    type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
+                    data: PointLightComponent(
+                        color: Vec3(1, 1, 1),
+                        range: 10,
+                        intensity: 10,
                     ),
                 ),
                 EntityComponent(
                     type: "35657365-bb0c-4306-8c69-d5e158ad978f",
                     data: TransformComponentDef(
-                        position: Vec3(0, 1.6022046, 0),
+                        position: Vec3(4.3124895, 0, 1.2228417),
+                        rotation: Vec3(0, 0, 0),
+                        scale: 1,
+                        non_uniform_scale: Vec3(1, 1, 1),
+                    ),
+                ),
+            ],
+        )),
+        Entity(PrefabEntity(
+            id: "fa52be99-471c-475e-9123-16f4c9bde43b",
+            components: [
+                EntityComponent(
+                    type: "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf",
+                    data: PointLightComponent(
+                        color: Vec3(1, 1, 1),
+                        range: 100,
+                        intensity: 100,
+                    ),
+                ),
+                EntityComponent(
+                    type: "35657365-bb0c-4306-8c69-d5e158ad978f",
+                    data: TransformComponentDef(
+                        position: Vec3(0, 3.673112, 0),
                         rotation: Vec3(0, 0, 0),
                         scale: 1,
                         non_uniform_scale: Vec3(1, 1, 1),
