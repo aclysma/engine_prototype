@@ -84,7 +84,7 @@ struct BufferToImport {
 
 #[derive(TypeUuid, Serialize, Deserialize, Default, Clone)]
 #[uuid = "807c83b3-c24c-4123-9580-5f9c426260b4"]
-struct GltfImporterStateStable {
+pub struct GltfImporterStateStable {
     //asset_uuid: Option<AssetUuid>,
 
     // Asset UUIDs for imported image by name
@@ -108,7 +108,7 @@ impl From<GltfImporterStateUnstable> for GltfImporterStateStable {
 }
 
 #[derive(Default)]
-struct GltfImporterStateUnstable {
+pub struct GltfImporterStateUnstable {
     //asset_uuid: Option<AssetUuid>,
 
     // Asset UUIDs for imported image by name
@@ -133,13 +133,13 @@ impl From<GltfImporterStateStable> for GltfImporterStateUnstable {
 
 #[derive(TypeUuid)]
 #[uuid = "fc9ae812-110d-4daf-9223-e87b40966c6b"]
-struct GltfImporter;
+pub struct GltfImporter;
 impl Importer for GltfImporter {
     fn version_static() -> u32
     where
         Self: Sized,
     {
-        24
+        25
     }
 
     fn version(&self) -> u32 {

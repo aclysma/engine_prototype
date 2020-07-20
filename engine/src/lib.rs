@@ -42,7 +42,7 @@ use atelier_assets::core as atelier_core;
 use atelier_assets::core::asset_uuid;
 
 mod asset_loader;
-mod assets;
+pub mod assets;
 mod features;
 mod game_renderer;
 mod init;
