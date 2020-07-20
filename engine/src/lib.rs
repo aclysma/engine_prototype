@@ -140,7 +140,7 @@ pub fn run(connect_string: String) {
                 ignore_event |= sdl2_imgui.ignore_event(&event);
             }
 
-            if ignore_event {
+            if !ignore_event {
                 let viewport = resources.get_mut::<ViewportResource>().unwrap();
                 minimum_sdl2::input::handle_sdl2_event(
                     &event,
