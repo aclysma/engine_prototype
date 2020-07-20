@@ -69,9 +69,12 @@ pub fn rendering_init(
     sdl2_window: &sdl2::video::Window,
 ) {
     // Set up imgui
-    let sdl2_imgui_manager = minimum_sdl2::imgui::init_imgui_manager(sdl2_window);
-    resources.insert(ImguiResource::new(sdl2_imgui_manager.imgui_manager()));
-    resources.insert(sdl2_imgui_manager);
+    #[cfg(feature = "use_imgui")]
+    {
+        let sdl2_imgui_manager = minimum_sdl2::imgui::init_imgui_manager(sdl2_window);
+        resources.insert(ImguiResource::new(sdl2_imgui_manager.imgui_manager()));
+        resources.insert(sdl2_imgui_manager);
+    }
 
     resources.insert(SpriteRenderNodeSet::default());
     resources.insert(MeshRenderNodeSet::default());
@@ -80,15 +83,28 @@ pub fn rendering_init(
     resources.insert(DebugDraw2DResource::new());
     resources.insert(DebugDraw3DResource::new());
 
+    let mut msaa_level = MsaaLevel::Sample4;
+    #[cfg(target_os = "ios")]
+    {
+        msaa_level = MsaaLevel::Sample1;
+    }
+
     let mut context = VkContextBuilder::new()
         .use_vulkan_debug_layer(false)
-        .msaa_level_priority(vec![MsaaLevel::Sample4])
-        //.msaa_level_priority(vec![MsaaLevel::Sample1])
+        .msaa_level_priority(vec![msaa_level])
         .prefer_mailbox_present_mode();
 
-    //#[cfg(debug_assertions)]
+    #[cfg(not(target_os = "ios"))]
     {
-        context = context.use_vulkan_debug_layer(true);
+        #[cfg(debug_assertions)]
+        {
+            context = context.use_vulkan_debug_layer(true);
+        }
+    }
+
+    #[cfg(feature = "static-vulkan")]
+    {
+        context = context.static_link();
     }
 
     // Thin window wrapper to decouple the renderer from a specific windowing crate

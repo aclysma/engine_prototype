@@ -5,6 +5,7 @@ use minimum::editor::EditorSelectRegistry;
 use minimum::editor::EditorSelectRegistryBuilder;
 use minimum::editor::EditorInspectRegistry;
 use minimum::editor::EditorInspectRegistryBuilder;
+use atelier_assets::loader::rpc_loader::RpcLoader;
 
 use minimum::ComponentRegistry;
 use minimum::resources::editor::Keybinds;
@@ -30,8 +31,8 @@ impl AssetResourceUpdateCallback for AssetResourceUpdateCallbackImpl {
 }
 
 /// Create the asset manager that has all the required types registered
-pub fn create_asset_resource() -> AssetResource {
-    let mut asset_manager = AssetResource::default();
+pub fn create_asset_resource(loader: RpcLoader) -> AssetResource {
+    let mut asset_manager = AssetResource::new(loader);
     asset_manager.set_update_fn(Box::new(AssetResourceUpdateCallbackImpl));
     asset_manager.add_storage::<minimum::pipeline::PrefabAsset>();
     asset_manager

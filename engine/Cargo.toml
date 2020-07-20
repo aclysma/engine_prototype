@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-renderer = { git = "https://github.com/aclysma/renderer_prototype.git" }
+renderer = { git = "https://github.com/aclysma/renderer_prototype.git", features = ["static-vulkan"] }
 renderer-shell-vulkan-sdl2 = { git = "https://github.com/aclysma/renderer_prototype.git" }
 minimum = { git = "https://github.com/aclysma/minimum.git" }
 minimum-sdl2 = { git = "https://github.com/aclysma/minimum.git" }
@@ -68,3 +68,7 @@ itertools = "0.8"
 nalgebra = { version = "0.18", features = [ "serde-serialize" ] }
 nalgebra-glm = "0.4"
 ncollide3d = "0.20"
+
+[features]
+use_imgui = []
+static-vulkan = ["renderer/static-vulkan"]

@@ -40,6 +40,7 @@ use crate::systems::{ScheduleCriteria, ScheduleManager};
 use fnv::FnvHashMap;
 use atelier_assets::core as atelier_core;
 use atelier_assets::core::asset_uuid;
+use atelier_assets::loader::rpc_loader::RpcLoader;
 
 mod asset_loader;
 pub mod assets;
@@ -58,9 +59,10 @@ struct ImGuiInspectTest {
     mat4: minimum::math::Mat4,
 }
 
-pub fn run() {
+pub fn run(connect_string: String) {
     let mut resources = Resources::default();
-    resources.insert(registration::create_asset_resource());
+    let loader = RpcLoader::new(connect_string).unwrap();
+    resources.insert(registration::create_asset_resource(loader));
     resources.insert(AppControlResource::new());
     resources.insert(TimeResource::new());
     resources.insert(InputResource::new());
@@ -114,6 +116,7 @@ pub fn run() {
 
     //let mut print_time_event = minimum::util::PeriodicEvent::default();
 
+    #[cfg(feature = "use_imgui")]
     let sdl2_imgui = resources.get::<Sdl2ImguiManager>().unwrap().clone();
 
     //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("12b37b66-94f7-4fa6-abb3-4050619c3e11")).unwrap();
@@ -127,9 +130,17 @@ pub fn run() {
 
             let mut input_resource = resources.get_mut::<InputResource>().unwrap();
 
+            #[cfg(feature = "use_imgui")]
             sdl2_imgui.handle_event(&event);
 
-            if !sdl2_imgui.ignore_event(&event) {
+            let mut ignore_event = false;
+
+            #[cfg(feature = "use_imgui")]
+            {
+                ignore_event |= sdl2_imgui.ignore_event(&event);
+            }
+
+            if ignore_event {
                 let viewport = resources.get_mut::<ViewportResource>().unwrap();
                 minimum_sdl2::input::handle_sdl2_event(
                     &event,
@@ -151,6 +162,7 @@ pub fn run() {
         //
         // Notify imgui of frame begin
         //
+        #[cfg(feature = "use_imgui")]
         sdl2_imgui.begin_frame(&sdl2_systems.window, &MouseState::new(&event_pump));
 
         schedule_manager.update(&mut world, &mut resources);
@@ -158,6 +170,7 @@ pub fn run() {
         //
         // Close imgui input for this frame and render the results to memory
         //
+        #[cfg(feature = "use_imgui")]
         sdl2_imgui.render(&sdl2_systems.window);
 
         let t1 = std::time::Instant::now();

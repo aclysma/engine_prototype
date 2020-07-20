@@ -167,7 +167,7 @@ impl ScheduleManager {
     fn create_update_schedule(criteria: &ScheduleCriteria) -> Schedule {
         use minimum::editor::systems::*;
 
-        ScheduleBuilder::new(criteria)
+        let mut builder = ScheduleBuilder::new(criteria)
             .always(update_input_resource)
             .always(advance_time)
             .always(quit_if_escape_pressed)
@@ -187,12 +187,19 @@ impl ScheduleManager {
             .always(editor_mouse_input)
             .always(editor_update_editor_draw)
             .always(editor_gizmos)
-            .always(editor_handle_selection)
-            .always(editor_imgui_menu)
-            .always(editor_entity_list_window)
-            .always_thread_local(editor_inspector_window)
-            // Editor processing
-            .always_thread_local(editor_process_edit_diffs)
+            .always(editor_handle_selection);
+
+
+        #[cfg(feature = "use_imgui")]
+        {
+            builder = builder
+                .always(editor_imgui_menu)
+                .always(editor_entity_list_window)
+                .always_thread_local(editor_inspector_window);
+        }
+
+        // Editor processing
+        builder.always_thread_local(editor_process_edit_diffs)
             .always_thread_local(editor_process_selection_ops)
             .always_thread_local(editor_process_editor_ops)
             // Editor output

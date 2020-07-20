@@ -38,6 +38,7 @@ use ash::version::DeviceV1_0;
 use crate::features::imgui::create_imgui_extract_job;
 
 pub struct GameRendererInner {
+    #[cfg(feature = "use_imgui")]
     imgui_font_atlas_image_view: ResourceArc<ImageViewResource>,
 
     static_resources: GameRendererStaticResources,
@@ -74,6 +75,7 @@ impl GameRenderer {
         let vk_context = resources.get_mut::<VkContext>().unwrap();
         let device_context = vk_context.device_context();
 
+        #[cfg(feature = "use_imgui")]
         let imgui_font_atlas_image_view = GameRenderer::create_font_atlas_image_view(
             &device_context,
             &mut resource_manager,
@@ -90,6 +92,7 @@ impl GameRenderer {
         let render_thread = RenderThread::start();
 
         let renderer = GameRendererInner {
+            #[cfg(feature = "use_imgui")]
             imgui_font_atlas_image_view,
             static_resources: game_renderer_resources,
             swapchain_resources: None,
@@ -106,6 +109,7 @@ impl GameRenderer {
         })
     }
 
+    #[cfg(feature = "use_imgui")]
     fn create_font_atlas_image_view(
         device_context: &VkDeviceContext,
         resource_manager: &mut ResourceManager,
@@ -501,6 +505,7 @@ impl GameRenderer {
                 &guard.static_resources.debug_material_2d,
             ));
 
+            #[cfg(feature = "use_imgui")]
             extract_job_set.add_job(create_imgui_extract_job(
                 device_context.clone(),
                 resource_manager.create_descriptor_set_allocator(),
