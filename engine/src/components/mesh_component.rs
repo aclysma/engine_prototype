@@ -88,6 +88,8 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                     half_extents.set_y(half_extents.y().abs().max(0.001));
                     half_extents.set_z(half_extents.z().abs().max(0.001));
 
+                    let center = transform.position() + (center * transform.scale());
+
                     let shape_handle = ShapeHandle::new(Cuboid::new(
                         ncollide3d::math::Vector::from(vec3_glam_to_glm(half_extents))
                     ));
@@ -95,7 +97,7 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                     let rotation = nalgebra::UnitQuaternion::from_quaternion(rotation);
                     collision_world.add(
                         ncollide3d::math::Isometry::from_parts(
-                            nalgebra::Translation::from(vec3_glam_to_glm(transform.position() + center)),
+                            nalgebra::Translation::from(vec3_glam_to_glm( center)),
                             rotation,
                         ),
                         shape_handle,

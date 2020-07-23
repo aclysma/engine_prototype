@@ -70,6 +70,6 @@ nalgebra-glm = "0.4"
 ncollide3d = "0.20"
 
 [features]
-default = []
+default = ["use_imgui"]
 use_imgui = []
 static-vulkan = ["renderer/static-vulkan"]
