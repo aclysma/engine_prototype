@@ -120,7 +120,20 @@ pub fn run(connect_string: String) {
     let sdl2_imgui = resources.get::<Sdl2ImguiManager>().unwrap().clone();
 
     //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("12b37b66-94f7-4fa6-abb3-4050619c3e11")).unwrap();
-    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
+
+
+    // Default scene file
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
+
+    // sponza gltf
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("8eecc4d2-d0b4-4edf-a35b-8a1835bde068")).unwrap();
+
+    // sponza gltf more stuff
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("19aa8933-9a66-41b1-b72f-74bc6681e22a")).unwrap();
+    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("df741a2e-2073-4f8c-9e4e-e52c29ad22e1")).unwrap();
+
+
+
 
     'running: loop {
         let t0 = std::time::Instant::now();

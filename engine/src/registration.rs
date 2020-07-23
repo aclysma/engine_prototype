@@ -13,6 +13,7 @@ use crate::components::{MeshComponentDef, MeshComponent, SpotLightComponent, Poi
 use legion::prelude::Resources;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
+use atelier_assets::loader::rpc_loader::RpcLoader;
 
 struct AssetResourceUpdateCallbackImpl;
 

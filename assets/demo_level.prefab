@@ -7,24 +7,7 @@ Prefab(
                 EntityComponent(
                     type: "46b6a84c-f224-48ac-a56d-46971bcaf7f1",
                     data: MeshComponentDef(
-                        mesh: Some([
-                            224,
-                            215,
-                            176,
-                            111,
-                            188,
-                            90,
-                            73,
-                            59,
-                            148,
-                            187,
-                            5,
-                            221,
-                            226,
-                            119,
-                            243,
-                            176,
-                        ]),
+                        mesh: Some("36c00bf1-255e-4537-bddb-fdbee5548db2"),
                     ),
                 ),
                 EntityComponent(

@@ -1,40 +1,41 @@
 (
     version: 1,
-    import_hash: Some(6245408341358382738),
-    importer_version: 24,
+    import_hash: Some(16583834413546678017),
+    importer_version: 26,
     importer_type: "fc9ae812-110d-4daf-9223-e87b40966c6b",
     importer_options: (),
     importer_state: (
-        buffer_asset_uuids: {
-            Index(0): "2c80b9ff-1b67-4f96-9c60-7a9e9c65d9f3",
-            Index(1): "0edf958d-5c68-4a3d-a57a-d81a1dffdec1",
-        },
-        image_asset_uuids: {
-            Name("rough-wet-cobble-albedo"): "161d42c4-b44f-4516-a5ca-79f965f19f0f",
-            Name("rough-wet-cobble-metallic-rough-wet-cobble-roughness"): "a870ef63-92a5-4b6b-9dc5-5d17cb6e6d56",
-            Name("rough-wet-cobble-normal-ogl"): "3c9c1438-974b-4eb6-adca-7785fd4dacc6",
-        },
-        material_asset_uuids: {
-            Name("Material"): "3068df27-965d-4a77-8457-1c03aefbe830",
-        },
-        material_instance_asset_uuids: {
-            Name("Material"): "dc740f08-8e06-4341-806e-a01ae37df314",
-        },
-        mesh_asset_uuids: {
-            Name("Cube"): "ef79835d-25de-4df0-99e8-1968d2826d05",
-        },
+        buffer_asset_uuids: [
+            (Index(0), "d4f95b53-7ea3-4a30-ac24-6aa01834bf47"),
+            (Index(1), "104f6f5a-63fa-45e9-aac5-329e2c2e26c5"),
+        ],
+        image_asset_uuids: [
+            (Name("rough-wet-cobble-albedo"), "0da6090e-5832-419f-81a1-f9747531bfe7"),
+            (Name("rough-wet-cobble-metallic-rough-wet-cobble-roughness"), "20a17aa6-c371-4a65-af2e-17a234f610b6"),
+            (Name("rough-wet-cobble-normal-ogl"), "d9ca9959-b146-466a-b72e-fd4065ffeb81"),
+        ],
+        material_asset_uuids: [
+            (Name("Material"), "06350797-344d-43b9-a499-d3067111aad2"),
+        ],
+        material_instance_asset_uuids: [
+            (Name("Material"), "d87c4925-19b9-401b-a089-2770415a2e30"),
+        ],
+        mesh_asset_uuids: [
+            (Name("Cube"), "a23b837a-9948-4b94-a8ad-80ffed549bc3"),
+        ],
+        prefab_asset_uuids: [],
     ),
     assets: [
         (
-            id: "3c9c1438-974b-4eb6-adca-7785fd4dacc6",
+            id: "d9ca9959-b146-466a-b72e-fd4065ffeb81",
             search_tags: [
                 ("image_name", Some("rough-wet-cobble-normal-ogl")),
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 3881351070729289260,
-                id: "3c9c1438-974b-4eb6-adca-7785fd4dacc6",
+                hash: 4546508095092808419,
+                id: "d9ca9959-b146-466a-b72e-fd4065ffeb81",
                 build_deps: [],
                 load_deps: [],
                 compression: None,
@@ -44,15 +45,15 @@
             )),
         ),
         (
-            id: "161d42c4-b44f-4516-a5ca-79f965f19f0f",
+            id: "0da6090e-5832-419f-81a1-f9747531bfe7",
             search_tags: [
                 ("image_name", Some("rough-wet-cobble-albedo")),
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 3315298946427817044,
-                id: "161d42c4-b44f-4516-a5ca-79f965f19f0f",
+                hash: 8155281075795827837,
+                id: "0da6090e-5832-419f-81a1-f9747531bfe7",
                 build_deps: [],
                 load_deps: [],
                 compression: None,
@@ -62,15 +63,15 @@
             )),
         ),
         (
-            id: "a870ef63-92a5-4b6b-9dc5-5d17cb6e6d56",
+            id: "20a17aa6-c371-4a65-af2e-17a234f610b6",
             search_tags: [
                 ("image_name", Some("rough-wet-cobble-metallic-rough-wet-cobble-roughness")),
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 4907336414720595324,
-                id: "a870ef63-92a5-4b6b-9dc5-5d17cb6e6d56",
+                hash: 17006210345503541466,
+                id: "20a17aa6-c371-4a65-af2e-17a234f610b6",
                 build_deps: [],
                 load_deps: [],
                 compression: None,
@@ -80,24 +81,24 @@
             )),
         ),
         (
-            id: "3068df27-965d-4a77-8457-1c03aefbe830",
+            id: "06350797-344d-43b9-a499-d3067111aad2",
             search_tags: [
                 ("material_name", Some("Material")),
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 17324643258506715282,
-                id: "3068df27-965d-4a77-8457-1c03aefbe830",
+                hash: 10105162237456254715,
+                id: "06350797-344d-43b9-a499-d3067111aad2",
                 build_deps: [
-                    Uuid("a870ef63-92a5-4b6b-9dc5-5d17cb6e6d56"),
-                    Uuid("161d42c4-b44f-4516-a5ca-79f965f19f0f"),
-                    Uuid("3c9c1438-974b-4eb6-adca-7785fd4dacc6"),
+                    Uuid("20a17aa6-c371-4a65-af2e-17a234f610b6"),
+                    Uuid("0da6090e-5832-419f-81a1-f9747531bfe7"),
+                    Uuid("d9ca9959-b146-466a-b72e-fd4065ffeb81"),
                 ],
                 load_deps: [
-                    Uuid("a870ef63-92a5-4b6b-9dc5-5d17cb6e6d56"),
-                    Uuid("161d42c4-b44f-4516-a5ca-79f965f19f0f"),
-                    Uuid("3c9c1438-974b-4eb6-adca-7785fd4dacc6"),
+                    Uuid("d9ca9959-b146-466a-b72e-fd4065ffeb81"),
+                    Uuid("0da6090e-5832-419f-81a1-f9747531bfe7"),
+                    Uuid("20a17aa6-c371-4a65-af2e-17a234f610b6"),
                 ],
                 compression: None,
                 compressed_size: Some(130),
@@ -106,28 +107,28 @@
             )),
         ),
         (
-            id: "dc740f08-8e06-4341-806e-a01ae37df314",
+            id: "d87c4925-19b9-401b-a089-2770415a2e30",
             search_tags: [
                 ("material_name", Some("Material")),
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 16077685687307938131,
-                id: "dc740f08-8e06-4341-806e-a01ae37df314",
+                hash: 17171805568015636945,
+                id: "d87c4925-19b9-401b-a089-2770415a2e30",
                 build_deps: [
-                    Uuid("a870ef63-92a5-4b6b-9dc5-5d17cb6e6d56"),
-                    Uuid("be831a21-f4f6-45d4-b9eb-e1bb6fc19d22"),
-                    Uuid("161d42c4-b44f-4516-a5ca-79f965f19f0f"),
-                    Uuid("3c9c1438-974b-4eb6-adca-7785fd4dacc6"),
+                    Uuid("20a17aa6-c371-4a65-af2e-17a234f610b6"),
                     Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
+                    Uuid("0da6090e-5832-419f-81a1-f9747531bfe7"),
+                    Uuid("be831a21-f4f6-45d4-b9eb-e1bb6fc19d22"),
+                    Uuid("d9ca9959-b146-466a-b72e-fd4065ffeb81"),
                 ],
                 load_deps: [
-                    Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
-                    Uuid("a870ef63-92a5-4b6b-9dc5-5d17cb6e6d56"),
-                    Uuid("161d42c4-b44f-4516-a5ca-79f965f19f0f"),
-                    Uuid("3c9c1438-974b-4eb6-adca-7785fd4dacc6"),
+                    Uuid("0da6090e-5832-419f-81a1-f9747531bfe7"),
+                    Uuid("20a17aa6-c371-4a65-af2e-17a234f610b6"),
                     Uuid("be831a21-f4f6-45d4-b9eb-e1bb6fc19d22"),
+                    Uuid("d9ca9959-b146-466a-b72e-fd4065ffeb81"),
+                    Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
                 ],
                 compression: None,
                 compressed_size: Some(414),
@@ -136,14 +137,14 @@
             )),
         ),
         (
-            id: "2c80b9ff-1b67-4f96-9c60-7a9e9c65d9f3",
+            id: "d4f95b53-7ea3-4a30-ac24-6aa01834bf47",
             search_tags: [
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 8718218784957532624,
-                id: "2c80b9ff-1b67-4f96-9c60-7a9e9c65d9f3",
+                hash: 4736695470625985360,
+                id: "d4f95b53-7ea3-4a30-ac24-6aa01834bf47",
                 build_deps: [],
                 load_deps: [],
                 compression: None,
@@ -153,14 +154,14 @@
             )),
         ),
         (
-            id: "0edf958d-5c68-4a3d-a57a-d81a1dffdec1",
+            id: "104f6f5a-63fa-45e9-aac5-329e2c2e26c5",
             search_tags: [
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 13940693572245906042,
-                id: "0edf958d-5c68-4a3d-a57a-d81a1dffdec1",
+                hash: 7681789170229031922,
+                id: "104f6f5a-63fa-45e9-aac5-329e2c2e26c5",
                 build_deps: [],
                 load_deps: [],
                 compression: None,
@@ -170,31 +171,53 @@
             )),
         ),
         (
-            id: "ef79835d-25de-4df0-99e8-1968d2826d05",
+            id: "a23b837a-9948-4b94-a8ad-80ffed549bc3",
             search_tags: [
                 ("mesh_name", Some("Cube")),
                 ("file_name", Some("cobblestone.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 12124225595633663750,
-                id: "ef79835d-25de-4df0-99e8-1968d2826d05",
+                hash: 6241815782009865701,
+                id: "a23b837a-9948-4b94-a8ad-80ffed549bc3",
                 build_deps: [
-                    Uuid("3068df27-965d-4a77-8457-1c03aefbe830"),
-                    Uuid("2c80b9ff-1b67-4f96-9c60-7a9e9c65d9f3"),
-                    Uuid("dc740f08-8e06-4341-806e-a01ae37df314"),
-                    Uuid("0edf958d-5c68-4a3d-a57a-d81a1dffdec1"),
+                    Uuid("d87c4925-19b9-401b-a089-2770415a2e30"),
+                    Uuid("d4f95b53-7ea3-4a30-ac24-6aa01834bf47"),
+                    Uuid("104f6f5a-63fa-45e9-aac5-329e2c2e26c5"),
+                    Uuid("06350797-344d-43b9-a499-d3067111aad2"),
                 ],
                 load_deps: [
-                    Uuid("dc740f08-8e06-4341-806e-a01ae37df314"),
-                    Uuid("2c80b9ff-1b67-4f96-9c60-7a9e9c65d9f3"),
-                    Uuid("0edf958d-5c68-4a3d-a57a-d81a1dffdec1"),
-                    Uuid("3068df27-965d-4a77-8457-1c03aefbe830"),
+                    Uuid("d4f95b53-7ea3-4a30-ac24-6aa01834bf47"),
+                    Uuid("104f6f5a-63fa-45e9-aac5-329e2c2e26c5"),
+                    Uuid("06350797-344d-43b9-a499-d3067111aad2"),
+                    Uuid("d87c4925-19b9-401b-a089-2770415a2e30"),
                 ],
                 compression: None,
                 compressed_size: Some(160),
                 uncompressed_size: Some(160),
                 type_id: "cf232526-3757-4d94-98d1-c2f7e27c979f",
+            )),
+        ),
+        (
+            id: "679f127a-1417-4aef-8b52-df973daa013e",
+            search_tags: [
+                ("mesh_name", Some("Scene")),
+                ("file_name", Some("cobblestone.gltf")),
+            ],
+            build_pipeline: None,
+            artifact: Some((
+                hash: 1672558035015682814,
+                id: "679f127a-1417-4aef-8b52-df973daa013e",
+                build_deps: [
+                    Uuid("a23b837a-9948-4b94-a8ad-80ffed549bc3"),
+                ],
+                load_deps: [
+                    Uuid("a23b837a-9948-4b94-a8ad-80ffed549bc3"),
+                ],
+                compression: None,
+                compressed_size: Some(217),
+                uncompressed_size: Some(217),
+                type_id: "5e751ea4-e63b-4192-a008-f5bf8674e45b",
             )),
         ),
     ],

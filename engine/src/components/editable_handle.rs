@@ -11,6 +11,18 @@ pub struct EditableHandle<T: ?Sized> {
     pub handle: Handle<T>
 }
 
+impl<T: ?Sized> From<Handle<T>> for EditableHandle<T> {
+    fn from(handle: Handle<T>) -> Self {
+        EditableHandle {
+            handle
+        }
+    }
+}
+
+// impl<T> EditableHandle<T: ?Sized> {
+//
+// }
+
 impl<T: ?Sized> PartialEq for EditableHandle<T> {
     fn eq(
         &self,

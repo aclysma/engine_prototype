@@ -8,9 +8,7 @@ use gltf::image::Data as GltfImageData;
 use gltf::buffer::Data as GltfBufferData;
 use fnv::FnvHashMap;
 use atelier_assets::loader::handle::Handle;
-use crate::assets::gltf::{
-    GltfMaterialAsset, MeshAssetData, MeshPartData, MeshVertex, GltfMaterialDataShaderParam,
-};
+use crate::assets::gltf::{GltfMaterialAsset, MeshAssetData, MeshPartData, MeshVertex, GltfMaterialDataShaderParam, MeshAsset};
 use renderer::assets::assets::{ImageAssetData, ColorSpace};
 use renderer::assets::assets::BufferAssetData;
 use renderer::assets::push_buffer::PushBuffer;
@@ -24,6 +22,11 @@ use renderer::assets::BufferAsset;
 use renderer::assets::MaterialAsset;
 use minimum::math::BoundingAabb;
 use itertools::Itertools;
+use legion::prelude::*;
+use minimum::pipeline::PrefabAsset;
+use minimum::components::TransformComponentDef;
+use crate::components::{MeshComponent, MeshComponentDef, EditableHandle};
+use legion_prefab::{PrefabBuilder, Prefab};
 
 #[derive(Debug)]
 struct GltfImportError {
@@ -75,24 +78,23 @@ struct BufferToImport {
     asset: BufferAssetData,
 }
 
-// fn get_or_create_uuid(option_uuid: &mut Option<AssetUuid>) -> AssetUuid {
-//     let uuid = option_uuid.unwrap_or_else(|| AssetUuid(*uuid::Uuid::new_v4().as_bytes()));
-//
-//     *option_uuid = Some(uuid);
-//     uuid
-// }
+struct PrefabToImport {
+    id: GltfObjectId,
+    asset: PrefabAsset,
+}
 
+// The asset state is stored in this format using Vecs
 #[derive(TypeUuid, Serialize, Deserialize, Default, Clone)]
 #[uuid = "807c83b3-c24c-4123-9580-5f9c426260b4"]
 pub struct GltfImporterStateStable {
-    //asset_uuid: Option<AssetUuid>,
-
-    // Asset UUIDs for imported image by name
+    // Asset UUIDs for imported image by name. We use vecs here so we can sort by UUID for
+    // deterministic output
     buffer_asset_uuids: Vec<(GltfObjectId, AssetUuid)>,
     image_asset_uuids: Vec<(GltfObjectId, AssetUuid)>,
     material_asset_uuids: Vec<(GltfObjectId, AssetUuid)>,
     material_instance_asset_uuids: Vec<(GltfObjectId, AssetUuid)>,
     mesh_asset_uuids: Vec<(GltfObjectId, AssetUuid)>,
+    prefab_asset_uuids: Vec<(GltfObjectId, AssetUuid)>,
 }
 
 impl From<GltfImporterStateUnstable> for GltfImporterStateStable {
@@ -103,20 +105,20 @@ impl From<GltfImporterStateUnstable> for GltfImporterStateStable {
         stable.material_asset_uuids = other.material_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
         stable.material_instance_asset_uuids = other.material_instance_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
         stable.mesh_asset_uuids = other.mesh_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
+        stable.prefab_asset_uuids = other.prefab_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
         stable
     }
 }
 
+// When processing the asset, we use hashmaps for faster lookups
 #[derive(Default)]
 pub struct GltfImporterStateUnstable {
-    //asset_uuid: Option<AssetUuid>,
-
-    // Asset UUIDs for imported image by name
     buffer_asset_uuids: FnvHashMap<GltfObjectId, AssetUuid>,
     image_asset_uuids: FnvHashMap<GltfObjectId, AssetUuid>,
     material_asset_uuids: FnvHashMap<GltfObjectId, AssetUuid>,
     material_instance_asset_uuids: FnvHashMap<GltfObjectId, AssetUuid>,
     mesh_asset_uuids: FnvHashMap<GltfObjectId, AssetUuid>,
+    prefab_asset_uuids: FnvHashMap<GltfObjectId, AssetUuid>,
 }
 
 impl From<GltfImporterStateStable> for GltfImporterStateUnstable {
@@ -127,6 +129,7 @@ impl From<GltfImporterStateStable> for GltfImporterStateUnstable {
         unstable.material_asset_uuids = other.material_asset_uuids.into_iter().collect();
         unstable.material_instance_asset_uuids = other.material_instance_asset_uuids.into_iter().collect();
         unstable.mesh_asset_uuids = other.mesh_asset_uuids.into_iter().collect();
+        unstable.prefab_asset_uuids = other.prefab_asset_uuids.into_iter().collect();
         unstable
     }
 }
@@ -139,7 +142,7 @@ impl Importer for GltfImporter {
     where
         Self: Sized,
     {
-        25
+        26
     }
 
     fn version(&self) -> u32 {
@@ -158,29 +161,6 @@ impl Importer for GltfImporter {
         stable_state: &mut Self::State,
     ) -> atelier_assets::importer::Result<ImporterValue> {
         let mut unstable_state : GltfImporterStateUnstable = stable_state.clone().into();
-        //
-        // Get the asset UUID, or create a new UUID if this is a new gltf file
-        //
-        // let gltf_asset_uuid = state
-        //     .asset_uuid
-        //     .unwrap_or_else(|| AssetUuid(*uuid::Uuid::new_v4().as_bytes()));
-
-        //
-        // state.asset_uuid = Some(gltf_asset_uuid);
-        //let gltf_asset_uuid = get_or_create_uuid(&mut state.asset_uuid);
-
-        // let vertex_buffer_uuid = get_or_create_uuid(&mut state.vertex_buffer_uuid);
-        // let index_buffer_uuid = get_or_create_uuid(&mut state.index_buffer_uuid);
-        //
-        // let vertex_buffer_handle = atelier_assets::loader::handle::SerdeContext::with_active(|loader_info_provider, ref_op| {
-        //     loader_info_provider.get_load_handle(&AssetRef::Uuid(vertex_buffer_uuid))
-        // }).unwrap();
-        //
-        // let index_buffer_handle = atelier_assets::loader::handle::SerdeContext::with_active(|loader_info_provider, ref_op| {
-        //     loader_info_provider.get_load_handle(&AssetRef::Uuid(index_buffer_uuid))
-        // }).unwrap();
-
-        //log::info!("Importing mesh {}", gltf_asset_uuid);
 
         //
         // Load the GLTF file
@@ -198,6 +178,7 @@ impl Importer for GltfImporter {
         // Accumulate everything we will import in this list
         let mut imported_assets = Vec::new();
 
+        // Iterate all materials and determine whether the texture should be treated as Srgb or linear
         let image_color_space_assignments =
             build_image_color_space_assignments_from_materials(&doc);
 
@@ -270,16 +251,6 @@ impl Importer for GltfImporter {
             if let GltfObjectId::Name(name) = &material_to_import.id {
                 search_tags.push(("material_name".to_string(), Some(name.clone())));
             }
-
-            // let mut load_deps = vec![];
-            // if let Some(image) = &material_to_import.asset.base_color_texture {
-            //     let image_uuid = SerdeContext::with_active(|x, _| {
-            //         x.get_asset_id(image.load_handle())
-            //     }).unwrap();
-            //
-            //     load_deps.push(AssetRef::Uuid(image_uuid));
-            // }
-
             log::debug!("Importing material uuid {:?}", material_uuid);
 
             // Create the asset
@@ -287,7 +258,6 @@ impl Importer for GltfImporter {
                 id: material_uuid,
                 search_tags,
                 build_deps: vec![],
-                //load_deps,
                 load_deps: vec![],
                 build_pipeline: None,
                 asset_data: Box::new(material_to_import.asset.clone()),
@@ -421,9 +391,6 @@ impl Importer for GltfImporter {
             });
         }
 
-        // let mut vertices = PushBuffer::new(16384);
-        // let mut indices = PushBuffer::new(16384);
-
         //
         // Meshes
         //
@@ -431,7 +398,6 @@ impl Importer for GltfImporter {
             &mut unstable_state,
             &doc,
             &buffers,
-            //&images,
             &material_index_to_handle,
             &material_instance_index_to_handle,
         )?;
@@ -468,6 +434,7 @@ impl Importer for GltfImporter {
         }
 
         //let mut mesh_index_to_uuid_lookup = vec![];
+        let mut mesh_index_to_handle = vec![];
         for mesh_to_import in meshes_to_import {
             // Find the UUID associated with this image or create a new one
             let mesh_uuid = *unstable_state
@@ -475,37 +442,20 @@ impl Importer for GltfImporter {
                 .entry(mesh_to_import.id.clone())
                 .or_insert_with(|| AssetUuid(*uuid::Uuid::new_v4().as_bytes()));
 
-            // Push the UUID into the list so that we have an O(1) lookup for image index to UUID
-            //mesh_index_to_uuid_lookup.push(mesh_uuid.clone());
+            let mesh_handle = SerdeContext::with_active(|loader_info_provider, ref_op_sender| {
+                let load_handle = loader_info_provider
+                    .get_load_handle(&AssetRef::Uuid(mesh_uuid))
+                    .unwrap();
+                Handle::<MeshAsset>::new(ref_op_sender.clone(), load_handle)
+            });
 
             let mut search_tags: Vec<(String, Option<String>)> = vec![];
             if let GltfObjectId::Name(name) = &mesh_to_import.id {
                 search_tags.push(("mesh_name".to_string(), Some(name.clone())));
             }
 
-            // let mut load_deps = vec![];
-            //
-            // // Vertex buffer dependency
-            // let vertex_buffer_uuid = SerdeContext::with_active(|x, _| {
-            //     x.get_asset_id(mesh_to_import.asset.vertex_buffer.load_handle())
-            // }).unwrap();
-            // load_deps.push(AssetRef::Uuid(vertex_buffer_uuid));
-            //
-            // // Index buffer dependency
-            // let index_buffer_uuid = SerdeContext::with_active(|x, _| {
-            //     x.get_asset_id(mesh_to_import.asset.index_buffer.load_handle())
-            // }).unwrap();
-            // load_deps.push(AssetRef::Uuid(index_buffer_uuid));
-            //
-            // // Materials dependencies
-            // for mesh_part in &mesh_to_import.asset.mesh_parts {
-            //     if let Some(material) = &mesh_part.material {
-            //         let material_uuid = SerdeContext::with_active(|x, _| {
-            //             x.get_asset_id(material.load_handle())
-            //         }).unwrap();
-            //         load_deps.push(AssetRef::Uuid(material_uuid));
-            //     }
-            // }
+            // Push the UUID into the list so that we have an O(1) lookup for image index to UUID
+            mesh_index_to_handle.push(mesh_handle);
 
             log::debug!("Importing mesh uuid {:?}", mesh_uuid);
 
@@ -520,12 +470,154 @@ impl Importer for GltfImporter {
             });
         }
 
+
+        //
+        // Scenes
+        //
+        let prefabs_to_import =
+            extract_prefabs_to_import(
+                &doc,
+                mesh_index_to_handle.as_slice(),
+                &mut unstable_state.prefab_asset_uuids
+            );
+        for prefab_to_import in prefabs_to_import {
+            // Find the UUID associated with this image or create a new one
+            let prefab_uuid = AssetUuid(prefab_to_import.asset.prefab.prefab_id());
+
+            let prefab_handle = SerdeContext::with_active(|loader_info_provider, ref_op_sender| {
+                let load_handle = loader_info_provider
+                    .get_load_handle(&AssetRef::Uuid(prefab_uuid))
+                    .unwrap();
+                Handle::<PrefabAsset>::new(ref_op_sender.clone(), load_handle)
+            });
+
+            let mut search_tags: Vec<(String, Option<String>)> = vec![];
+            if let GltfObjectId::Name(name) = &prefab_to_import.id {
+                search_tags.push(("scene_name".to_string(), Some(name.clone())));
+            }
+
+            // Push the UUID into the list so that we have an O(1) lookup for image index to UUID
+            //prefab_index_to_handle.push(prefab_handle);
+
+            log::debug!("Importing prefab uuid {:?}", prefab_uuid);
+
+            // Create the asset
+            imported_assets.push(ImportedAsset {
+                id: prefab_uuid,
+                search_tags,
+                build_deps: vec![],
+                load_deps: vec![],
+                build_pipeline: None,
+                asset_data: Box::new(prefab_to_import.asset),
+            });
+        }
+
         *stable_state = unstable_state.into();
 
         Ok(ImporterValue {
             assets: imported_assets,
         })
     }
+}
+
+// let name = scene.name();
+// for node in scene.nodes() {
+//     for child in node.children() {
+//         child.name();
+//
+//         //child.camera();
+//         //child.light();
+//         // - name
+//         // - color
+//         // - intensity
+//         // - type (directional, point, spot)
+//         // directional: emit -z, lm/m^2
+//         // point: lm/sr
+//         // spot: innerConeAngle, outerConeAngle, radians
+//         // - Must be <= PI/2.0
+//         // - Use outerConeAngle if there is no support for inner
+//         // - PI/4 default
+//         //
+//         // - range
+//
+//
+//         //child.mesh();
+//     }
+// }
+fn add_nodes_to_world(
+    mesh_index_to_handle: &[Handle<MeshAsset>],
+    world: &mut World,
+    node: &gltf::Node,
+    parent_transform: glam::Mat4,
+) {
+    let local_to_world = glam::Mat4::from_cols_array_2d(&node.transform().matrix()) * parent_transform;
+
+    if let Some(mesh) = node.mesh() {
+        let transform_component = TransformComponentDef::from_matrix(local_to_world);
+        let mesh_handle = mesh_index_to_handle[mesh.index()].clone();
+        let mesh_component = MeshComponentDef {
+            mesh: Some(mesh_handle.into())
+        };
+
+        world.insert((), vec![(transform_component, mesh_component)]);
+    }
+
+    // if let Some(light) = node.light() {
+    //
+    // }
+
+    // if let Some(camera) = node.camera() {
+    //
+    // }
+
+    for child in node.children() {
+        add_nodes_to_world(mesh_index_to_handle, world, &child,  local_to_world);
+    }
+}
+
+fn extract_prefabs_to_import(
+    doc: &gltf::Document,
+    mesh_index_to_handle: &[Handle<MeshAsset>],
+    prefabs_uuids: &mut FnvHashMap<GltfObjectId, AssetUuid>
+) -> Vec<PrefabToImport> {
+    let mut prefabs_to_import = Vec::with_capacity(doc.scenes().len());
+
+    for scene in doc.scenes() {
+        // Create an empty world for the scene
+        let mut world = World::default();
+
+        // Descend the node tree recursively, adding things to the world
+        for node in scene.nodes() {
+            add_nodes_to_world(mesh_index_to_handle, &mut world, &node, glam::Mat4::identity());
+        }
+
+        // Turn the world into a prefab
+        let mut prefab = Prefab::new(world);
+
+        // Use the scene name, or index if unnamed, to create a "stable" ID within this gltf file
+        let scene_id = scene
+            .name()
+            .map(|s| GltfObjectId::Name(s.to_string()))
+            .unwrap_or(GltfObjectId::Index(scene.index()));
+
+        // If we have exported a scene with a matching ID previous, use the same uuid as last time
+        if let Some(previous_uuid) = prefabs_uuids.get(&scene_id) {
+            println!("Found previous ID");
+            prefab.prefab_meta.id = previous_uuid.0;
+        } else {
+            println!("Inserting new ID");
+            prefabs_uuids.insert(scene_id.clone(), AssetUuid(prefab.prefab_id()));
+        };
+
+        prefabs_to_import.push(PrefabToImport {
+            id: scene_id,
+            asset: PrefabAsset {
+                prefab
+            },
+        });
+    }
+
+    prefabs_to_import
 }
 
 fn extract_images_to_import(
@@ -791,7 +883,6 @@ fn extract_meshes_to_import(
     state: &mut GltfImporterStateUnstable,
     doc: &gltf::Document,
     buffers: &Vec<GltfBufferData>,
-    //images: &Vec<GltfImageData>,
     material_index_to_handle: &[Handle<GltfMaterialAsset>],
     material_instance_index_to_handle: &[Handle<MaterialInstanceAsset>],
 ) -> atelier_assets::importer::Result<(Vec<MeshToImport>, Vec<BufferToImport>)> {
