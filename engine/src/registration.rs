@@ -9,7 +9,7 @@ use atelier_assets::loader::rpc_loader::RpcLoader;
 
 use minimum::ComponentRegistry;
 use minimum::resources::editor::Keybinds;
-use crate::components::{MeshComponentDef, MeshComponent, SpotLightComponent, PointLightComponent};
+use crate::components::{MeshComponentDef, MeshComponent, SpotLightComponent, PointLightComponent, DirectionalLightComponent};
 use legion::prelude::Resources;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
@@ -59,6 +59,8 @@ pub fn create_editor_selection_registry() -> EditorSelectRegistry {
         //.register::<PointLightComponent>()
         .register_transformed::<MeshComponentDef, MeshComponent>()
         .register::<PointLightComponent>()
+        .register::<SpotLightComponent>()
+        .register::<DirectionalLightComponent>()
         .build()
 }
 
@@ -68,6 +70,9 @@ pub fn create_editor_inspector_registry() -> EditorInspectRegistry {
         // .register::<DrawSkiaBoxComponentDef>()
         .register::<TransformComponentDef>()
         .register::<PointLightComponent>()
+        .register::<SpotLightComponent>()
+        .register::<DirectionalLightComponent>()
+        .register::<EditorMetadataComponent>()
         .register::<MeshComponentDef>()
         // .register::<RigidBodyBallComponentDef>()
         // .register::<RigidBodyBoxComponentDef>()

@@ -38,26 +38,17 @@ pub use mesh_component::MeshComponentDef;
 mod point_light_component;
 pub use point_light_component::PointLightComponent;
 
+mod spot_light_component;
+pub use spot_light_component::SpotLightComponent;
+
+mod directional_light_component;
+pub use directional_light_component::DirectionalLightComponent;
+
 // #[derive(Copy, Clone)]
 // pub struct PositionComponent {
 //     pub position: Vec3,
 // }
 
-#[derive(Clone)]
-pub struct DirectionalLightComponent {
-    pub direction: glam::Vec3,
-    pub color: glam::Vec3,
-    pub intensity: f32,
-}
-
-#[derive(Clone)]
-pub struct SpotLightComponent {
-    pub direction: glam::Vec3,
-    pub color: glam::Vec3,
-    pub spotlight_half_angle: f32,
-    pub range: f32,
-    pub intensity: f32,
-}
 
 #[derive(Clone)]
 pub struct SpriteComponent {

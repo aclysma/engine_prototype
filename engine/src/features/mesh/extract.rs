@@ -197,7 +197,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 
             let light_from = glam::Vec3::new(0.0, 0.0, 0.0);
             let light_from_vs = (view.view_matrix() * light_from.extend(1.0)).truncate();
-            let light_to = light.direction;
+            let light_to = *light.direction;
             let light_to_vs = (view.view_matrix() * light_to.extend(1.0)).truncate();
 
             let light_direction = (light_to - light_from).normalize();
@@ -238,7 +238,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 
             let light_from = transform.position();
             let light_from_vs = (view.view_matrix().transform_point3(light_from));
-            let light_to = transform.position() + light.direction;
+            let light_to = transform.position() + *light.direction;
             let light_to_vs = (view.view_matrix().transform_point3(light_to));
 
             let light_direction = (light_to - light_from).normalize();

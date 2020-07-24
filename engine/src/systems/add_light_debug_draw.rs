@@ -22,7 +22,7 @@ pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
                     let light_from = glam::Vec3::new(0.0, 0.0, 0.0);
                     let light_to = light.direction;
 
-                    debug_draw.add_line(light_from, light_to, light.color.extend(1.0), DebugDraw3DDepthBehavior::Normal);
+                    debug_draw.add_line(light_from, *light_to, light.color.extend(1.0), DebugDraw3DDepthBehavior::Normal);
                 }
 
                 for (position, light) in point_light_query.iter(world) {
@@ -31,7 +31,7 @@ pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
 
                 for (position, light) in spot_light_query.iter(world) {
                     let light_from = position.position();
-                    let light_to = position.position() + light.direction;
+                    let light_to = position.position() + *light.direction;
                     let light_direction = (light_to - light_from).normalize();
 
                     debug_draw.add_cone(

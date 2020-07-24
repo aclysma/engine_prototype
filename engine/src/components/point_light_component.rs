@@ -11,6 +11,7 @@ use ncollide3d::shape::{ShapeHandle, Ball};
 use ncollide3d::world::CollisionWorld;
 use ncollide3d::pipeline::{GeometricQueryType, CollisionGroups};
 use minimum::editor::EditorSelectable;
+use minimum::math::na_convert::vec3_glam_to_glm;
 
 #[derive(TypeUuid, Serialize, Deserialize, SerdeDiff, Debug, PartialEq, Clone, Default, Inspect)]
 #[uuid = "84c8de08-f5ea-48f5-8bbd-f56a30b6aecf"]
@@ -22,10 +23,6 @@ pub struct PointLightComponent {
 }
 
 legion_prefab::register_component_type!(PointLightComponent);
-
-pub fn vec3_glam_to_glm(value: glam::Vec3) -> nalgebra_glm::Vec3 {
-    nalgebra_glm::Vec3::new(value.x(), value.y(), value.z())
-}
 
 impl EditorSelectable for PointLightComponent {
     fn create_editor_selection_world(

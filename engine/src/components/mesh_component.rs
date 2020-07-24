@@ -29,11 +29,7 @@ use legion_prefab::SpawnFrom;
 use legion_transaction::iter_components_in_storage;
 use crate::components::EditableHandle;
 use ncollide3d::shape::Cuboid;
-
-
-pub fn vec3_glam_to_glm(value: glam::Vec3) -> nalgebra_glm::Vec3 {
-    nalgebra_glm::Vec3::new(value.x(), value.y(), value.z())
-}
+use minimum::math::na_convert::vec3_glam_to_glm;
 
 
 #[derive(TypeUuid, Serialize, Deserialize, SerdeDiff, Debug, PartialEq, Clone, Default, Inspect)]

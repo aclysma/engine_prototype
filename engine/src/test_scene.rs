@@ -176,7 +176,7 @@ pub fn populate_test_lights(
         world,
         light_from,
         SpotLightComponent {
-            direction: light_direction,
+            direction: light_direction.into(),
             spotlight_half_angle: 10.0 * (std::f32::consts::PI / 180.0),
             range: 8.0,
             color: [1.0, 1.0, 1.0].into(),
@@ -191,7 +191,7 @@ pub fn populate_test_lights(
         resources,
         world,
         DirectionalLightComponent {
-            direction: light_direction,
+            direction: light_direction.into(),
             intensity: 5.0,
             color: [1.0, 1.0, 1.0].into(),
         },

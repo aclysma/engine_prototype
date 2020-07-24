@@ -24,8 +24,8 @@ use minimum::math::BoundingAabb;
 use itertools::Itertools;
 use legion::prelude::*;
 use minimum::pipeline::PrefabAsset;
-use minimum::components::TransformComponentDef;
-use crate::components::{MeshComponent, MeshComponentDef, EditableHandle};
+use minimum::components::{TransformComponentDef, EditorMetadataComponent};
+use crate::components::{MeshComponent, MeshComponentDef, EditableHandle, DirectionalLightComponent, PointLightComponent, SpotLightComponent};
 use legion_prefab::{PrefabBuilder, Prefab};
 
 #[derive(Debug)]
@@ -142,7 +142,7 @@ impl Importer for GltfImporter {
     where
         Self: Sized,
     {
-        26
+        27
     }
 
     fn version(&self) -> u32 {
@@ -518,106 +518,6 @@ impl Importer for GltfImporter {
             assets: imported_assets,
         })
     }
-}
-
-// let name = scene.name();
-// for node in scene.nodes() {
-//     for child in node.children() {
-//         child.name();
-//
-//         //child.camera();
-//         //child.light();
-//         // - name
-//         // - color
-//         // - intensity
-//         // - type (directional, point, spot)
-//         // directional: emit -z, lm/m^2
-//         // point: lm/sr
-//         // spot: innerConeAngle, outerConeAngle, radians
-//         // - Must be <= PI/2.0
-//         // - Use outerConeAngle if there is no support for inner
-//         // - PI/4 default
-//         //
-//         // - range
-//
-//
-//         //child.mesh();
-//     }
-// }
-fn add_nodes_to_world(
-    mesh_index_to_handle: &[Handle<MeshAsset>],
-    world: &mut World,
-    node: &gltf::Node,
-    parent_transform: glam::Mat4,
-) {
-    let local_to_world = glam::Mat4::from_cols_array_2d(&node.transform().matrix()) * parent_transform;
-
-    if let Some(mesh) = node.mesh() {
-        let transform_component = TransformComponentDef::from_matrix(local_to_world);
-        let mesh_handle = mesh_index_to_handle[mesh.index()].clone();
-        let mesh_component = MeshComponentDef {
-            mesh: Some(mesh_handle.into())
-        };
-
-        world.insert((), vec![(transform_component, mesh_component)]);
-    }
-
-    // if let Some(light) = node.light() {
-    //
-    // }
-
-    // if let Some(camera) = node.camera() {
-    //
-    // }
-
-    for child in node.children() {
-        add_nodes_to_world(mesh_index_to_handle, world, &child,  local_to_world);
-    }
-}
-
-fn extract_prefabs_to_import(
-    doc: &gltf::Document,
-    mesh_index_to_handle: &[Handle<MeshAsset>],
-    prefabs_uuids: &mut FnvHashMap<GltfObjectId, AssetUuid>
-) -> Vec<PrefabToImport> {
-    let mut prefabs_to_import = Vec::with_capacity(doc.scenes().len());
-
-    for scene in doc.scenes() {
-        // Create an empty world for the scene
-        let mut world = World::default();
-
-        // Descend the node tree recursively, adding things to the world
-        for node in scene.nodes() {
-            add_nodes_to_world(mesh_index_to_handle, &mut world, &node, glam::Mat4::identity());
-        }
-
-        // Turn the world into a prefab
-        let mut prefab = Prefab::new(world);
-
-        // Use the scene name, or index if unnamed, to create a "stable" ID within this gltf file
-        let scene_id = scene
-            .name()
-            .map(|s| GltfObjectId::Name(s.to_string()))
-            .unwrap_or(GltfObjectId::Index(scene.index()));
-
-        // If we have exported a scene with a matching ID previous, use the same uuid as last time
-        if let Some(previous_uuid) = prefabs_uuids.get(&scene_id) {
-            println!("Found previous ID");
-            prefab.prefab_meta.id = previous_uuid.0;
-        } else {
-            println!("Inserting new ID");
-            prefabs_uuids.insert(scene_id.clone(), AssetUuid(prefab.prefab_id()));
-        };
-
-        prefabs_to_import.push(PrefabToImport {
-            id: scene_id,
-            asset: PrefabAsset {
-                prefab
-            },
-        });
-    }
-
-    prefabs_to_import
 }
 
 fn extract_images_to_import(
@@ -1082,6 +982,166 @@ fn extract_meshes_to_import(
     }
 
     Ok((meshes_to_import, buffers_to_import))
+}
+
+// let name = scene.name();
+// for node in scene.nodes() {
+//     for child in node.children() {
+//         child.name();
+//
+//         //child.camera();
+//         //child.light();
+//         // - name
+//         // - color
+//         // - intensity
+//         // - type (directional, point, spot)
+//         // directional: emit -z, lm/m^2
+//         // point: lm/sr
+//         // spot: innerConeAngle, outerConeAngle, radians
+//         // - Must be <= PI/2.0
+//         // - Use outerConeAngle if there is no support for inner
+//         // - PI/4 default
+//         //
+//         // - range
+//
+//
+//         //child.mesh();
+//     }
+// }
+fn add_nodes_to_world(
+    mesh_index_to_handle: &[Handle<MeshAsset>],
+    world: &mut World,
+    node: &gltf::Node,
+    parent_transform: glam::Mat4,
+) {
+    let local_to_world = glam::Mat4::from_cols_array_2d(&node.transform().matrix()) * parent_transform;
+
+    if let Some(mesh) = node.mesh() {
+        let transform_component = TransformComponentDef::from_matrix(local_to_world);
+        let mesh_handle = mesh_index_to_handle[mesh.index()].clone();
+        let mesh_component = MeshComponentDef {
+            mesh: Some(mesh_handle.into())
+        };
+        let mut components = vec![(transform_component, mesh_component)];
+        let e = world.insert((), components)[0];
+
+        log::info!("Added mesh {:?}", e);
+        if let Some(name) = node.name() {
+            log::info!("  name: {}", name);
+            world.add_component(e, EditorMetadataComponent {
+                name: name.to_string()
+            });
+        };
+    }
+
+    if let Some(light) = node.light() {
+        let transform_component = TransformComponentDef::from_matrix(local_to_world);
+        let intensity = light.intensity();
+        //TODO: Better default for range
+        let range = light.range().unwrap_or(f32::MAX);
+        let color = light.color().into();
+
+        let entity = match light.kind() {
+            gltf::khr_lights_punctual::Kind::Directional => {
+                let light_component = DirectionalLightComponent {
+                    color,
+                    intensity,
+                    direction: glam::Vec3::new(0.0, 0.0, -1.0).into() // per spec, directional lights point -z
+                };
+
+                let mut components = vec![(transform_component, light_component)];
+                world.insert((), components)[0]
+            },
+            gltf::khr_lights_punctual::Kind::Point => {
+                let light_component = PointLightComponent {
+                    color,
+                    intensity,
+                    range
+                };
+
+                let mut components = vec![(transform_component, light_component)];
+                world.insert((), components)[0]
+            },
+            gltf::khr_lights_punctual::Kind::Spot {
+                inner_cone_angle,
+                outer_cone_angle
+            } => {
+                //TODO: Support inner angle. Per spec, implementations should use outer if they only
+                // accept a single value
+                let light_component = SpotLightComponent {
+                    color,
+                    intensity,
+                    range,
+                    direction: glam::Vec3::new(0.0, 0.0, -1.0).into(), // per spec, directional lights point -z,
+                    spotlight_half_angle: outer_cone_angle,
+                };
+
+                let mut components = vec![(transform_component, light_component)];
+                world.insert((), components)[0]
+            }
+        };
+        log::info!("Added mesh {:?}", entity);
+
+        if let Some(name) = node.name() {
+            log::info!("  name: {}", name);
+            world.add_component(entity, EditorMetadataComponent {
+                name: name.to_string()
+            });
+        };
+    }
+
+    // if let Some(camera) = node.camera() {
+    //
+    // }
+
+    for child in node.children() {
+        add_nodes_to_world(mesh_index_to_handle, world, &child,  local_to_world);
+    }
+}
+
+fn extract_prefabs_to_import(
+    doc: &gltf::Document,
+    mesh_index_to_handle: &[Handle<MeshAsset>],
+    prefabs_uuids: &mut FnvHashMap<GltfObjectId, AssetUuid>
+) -> Vec<PrefabToImport> {
+    let mut prefabs_to_import = Vec::with_capacity(doc.scenes().len());
+
+    for scene in doc.scenes() {
+        // Create an empty world for the scene
+        let mut world = World::default();
+
+        // Descend the node tree recursively, adding things to the world
+        for node in scene.nodes() {
+            add_nodes_to_world(mesh_index_to_handle, &mut world, &node, glam::Mat4::identity());
+        }
+
+        // Turn the world into a prefab
+        let mut prefab = Prefab::new(world);
+
+        // Use the scene name, or index if unnamed, to create a "stable" ID within this gltf file
+        let scene_id = scene
+            .name()
+            .map(|s| GltfObjectId::Name(s.to_string()))
+            .unwrap_or(GltfObjectId::Index(scene.index()));
+
+        // If we have exported a scene with a matching ID previous, use the same uuid as last time
+        if let Some(previous_uuid) = prefabs_uuids.get(&scene_id) {
+            println!("Found previous ID");
+            prefab.prefab_meta.id = previous_uuid.0;
+        } else {
+            println!("Inserting new ID");
+            prefabs_uuids.insert(scene_id.clone(), AssetUuid(prefab.prefab_id()));
+        };
+
+        prefabs_to_import.push(PrefabToImport {
+            id: scene_id,
+            asset: PrefabAsset {
+                prefab
+            },
+        });
+    }
+
+    prefabs_to_import
 }
 
 // make a macro to reduce duplication here :)
