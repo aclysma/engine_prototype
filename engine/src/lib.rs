@@ -130,7 +130,20 @@ pub fn run(connect_string: String) {
 
     // sponza gltf more stuff
     //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("19aa8933-9a66-41b1-b72f-74bc6681e22a")).unwrap();
+
+
+    // sponza cleaned up
     EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("df741a2e-2073-4f8c-9e4e-e52c29ad22e1")).unwrap();
+
+
+    // frenet
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("48ea3c0f-dcfa-4e6d-aef2-7ae3b890bde4")).unwrap();
+
+    // frenet z up
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("016092c7-af00-4936-9960-1a9d68cfa273")).unwrap();
+
+    // diagonal
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("d334250c-8a61-452d-a96a-6deeeb75b8a6")).unwrap();
 
 
 

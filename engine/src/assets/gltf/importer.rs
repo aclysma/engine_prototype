@@ -24,9 +24,10 @@ use minimum::math::BoundingAabb;
 use itertools::Itertools;
 use legion::prelude::*;
 use minimum::pipeline::PrefabAsset;
-use minimum::components::{TransformComponentDef, EditorMetadataComponent};
+use minimum::components::{TransformComponentDef, EditorMetadataComponent, TransformComponent};
 use crate::components::{MeshComponent, MeshComponentDef, EditableHandle, DirectionalLightComponent, PointLightComponent, SpotLightComponent};
 use legion_prefab::{PrefabBuilder, Prefab};
+use gltf::camera::Projection;
 
 #[derive(Debug)]
 struct GltfImportError {
@@ -1014,14 +1015,24 @@ fn add_nodes_to_world(
     node: &gltf::Node,
     parent_transform: glam::Mat4,
 ) {
-    let local_to_world = glam::Mat4::from_cols_array_2d(&node.transform().matrix()) * parent_transform;
-
+    let local_to_world = parent_transform * glam::Mat4::from_cols_array_2d(&node.transform().matrix());
     if let Some(mesh) = node.mesh() {
-        let transform_component = TransformComponentDef::from_matrix(local_to_world);
+        //let transform_component = TransformComponentDef::from_matrix(local_to_world);
         let mesh_handle = mesh_index_to_handle[mesh.index()].clone();
         let mesh_component = MeshComponentDef {
             mesh: Some(mesh_handle.into())
         };
+
+        // Temporary
+        let transform_component = {
+            let m =  node.transform().matrix();
+            let m = glam::Mat4::from_cols_array_2d(&m);
+            let tformed = parent_transform * m;
+            TransformComponent {
+                transform: tformed
+            }
+        };
+
         let mut components = vec![(transform_component, mesh_component)];
         let e = world.insert((), components)[0];
 
@@ -1090,9 +1101,30 @@ fn add_nodes_to_world(
         };
     }
 
-    // if let Some(camera) = node.camera() {
-    //
-    // }
+    if let Some(camera) = node.camera() {
+        //GLTF:
+        // The camera is defined such that the local +X axis is to the right,
+        // the lens looks towards the local -Z axis, and
+        // the top of the camera is aligned with the local +Y axis
+        //BLENDER:
+        // X = Left/Right   (+X = Left)
+        // Y = Front/back   (+Y = Back)
+        // Z = Top/Bottom   (+Z = Top
+        match camera.projection() {
+            Projection::Orthographic(proj) => {
+                proj.xmag();
+                proj.ymag();
+                proj.zfar();
+                proj.znear();
+            },
+            Projection::Perspective(proj) => {
+                proj.aspect_ratio();
+                proj.yfov();
+                proj.zfar();
+                proj.znear();
+            }
+        }
+    }
 
     for child in node.children() {
         add_nodes_to_world(mesh_index_to_handle, world, &child,  local_to_world);
@@ -1112,7 +1144,9 @@ fn extract_prefabs_to_import(
 
         // Descend the node tree recursively, adding things to the world
         for node in scene.nodes() {
-            add_nodes_to_world(mesh_index_to_handle, &mut world, &node, glam::Mat4::identity());
+            let transform = glam::Mat4::from_rotation_x(std::f32::consts::FRAC_PI_2);
+            //let transform = glam::Mat4::identity();
+            add_nodes_to_world(mesh_index_to_handle, &mut world, &node, transform);
         }
 
         // Turn the world into a prefab
