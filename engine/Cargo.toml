@@ -12,9 +12,9 @@ renderer-shell-vulkan-sdl2 = { git = "https://github.com/aclysma/renderer_protot
 minimum = { git = "https://github.com/aclysma/minimum.git" }
 minimum-sdl2 = { git = "https://github.com/aclysma/minimum.git" }
 
-legion-transaction = { git = "https://github.com/aclysma/prefab", branch="minimum" }
-legion-prefab = { git = "https://github.com/aclysma/prefab", branch="minimum" }
-prefab-format = { git = "https://github.com/aclysma/prefab", branch="minimum" }
+legion-transaction = { git = "https://github.com/aclysma/prefab", branch="minimum-legion-0.3" }
+legion-prefab = { git = "https://github.com/aclysma/prefab", branch="minimum-legion-0.3" }
+prefab-format = { git = "https://github.com/aclysma/prefab", branch="minimum-legion-0.3" }
 
 serde-diff = "0.3"
 imgui-inspect-derive = "0.5"
@@ -33,8 +33,9 @@ crossbeam-channel = "0.4.2"
 
 vk-mem = "0.2"
 
-legion = { version = "0.2.4", default-features = false, features = ["serialize"] }
-atelier-assets = { git = "https://github.com/amethyst/atelier-assets" }
+legion = { version = "0.3.0", default-features = false, features = ["serialize"] }
+atelier-assets = { git = "https://github.com/aclysma/atelier-assets", branch = "minimum-0.3", features = ["serde_importers", "asset_uuid_macro"] }
+futures-lite = "1.3.0"
 
 env_logger = "0.6"
 

@@ -8,7 +8,7 @@ use atelier_assets::core as atelier_core;
 use ash::prelude::VkResult;
 use atelier_assets::loader::handle::AssetHandle;
 use renderer::assets::MaterialAsset;
-use legion::prelude::Resources;
+use legion::Resources;
 
 fn begin_load_asset<T>(
     asset_uuid: AssetUuid,

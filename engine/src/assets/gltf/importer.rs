@@ -1,5 +1,5 @@
 use atelier_assets::core::{AssetUuid, AssetRef};
-use atelier_assets::importer::{Error, ImportedAsset, Importer, ImporterValue, SourceFileImporter};
+use atelier_assets::importer::{Error, ImportedAsset, Importer, ImporterValue};
 use serde::{Deserialize, Serialize};
 use type_uuid::*;
 use std::io::Read;
@@ -22,7 +22,7 @@ use renderer::assets::BufferAsset;
 use renderer::assets::MaterialAsset;
 use minimum::math::BoundingAabb;
 use itertools::Itertools;
-use legion::prelude::*;
+use legion::*;
 use minimum::pipeline::PrefabAsset;
 use minimum::components::{TransformComponentDef, EditorMetadataComponent, TransformComponent};
 use crate::components::{MeshComponent, MeshComponentDef, EditableHandle, DirectionalLightComponent, PointLightComponent, SpotLightComponent};
@@ -1034,12 +1034,12 @@ fn add_nodes_to_world(
         };
 
         let mut components = vec![(transform_component, mesh_component)];
-        let e = world.insert((), components)[0];
+        let e = world.extend(components)[0];
 
         log::info!("Added mesh {:?}", e);
         if let Some(name) = node.name() {
             log::info!("  name: {}", name);
-            world.add_component(e, EditorMetadataComponent {
+            world.entry(e).unwrap().add_component(EditorMetadataComponent {
                 name: name.to_string()
             });
         };
@@ -1061,7 +1061,7 @@ fn add_nodes_to_world(
                 };
 
                 let mut components = vec![(transform_component, light_component)];
-                world.insert((), components)[0]
+                world.extend(components)[0]
             },
             gltf::khr_lights_punctual::Kind::Point => {
                 let light_component = PointLightComponent {
@@ -1071,7 +1071,7 @@ fn add_nodes_to_world(
                 };
 
                 let mut components = vec![(transform_component, light_component)];
-                world.insert((), components)[0]
+                world.extend(components)[0]
             },
             gltf::khr_lights_punctual::Kind::Spot {
                 inner_cone_angle,
@@ -1088,14 +1088,14 @@ fn add_nodes_to_world(
                 };
 
                 let mut components = vec![(transform_component, light_component)];
-                world.insert((), components)[0]
+                world.extend(components)[0]
             }
         };
         log::info!("Added mesh {:?}", entity);
 
         if let Some(name) = node.name() {
             log::info!("  name: {}", name);
-            world.add_component(entity, EditorMetadataComponent {
+            world.entry(entity).unwrap().add_component(EditorMetadataComponent {
                 name: name.to_string()
             });
         };
@@ -1177,15 +1177,3 @@ fn extract_prefabs_to_import(
 
     prefabs_to_import
 }
-
-// make a macro to reduce duplication here :)
-inventory::submit!(SourceFileImporter {
-    extension: "gltf",
-    instantiator: || Box::new(GltfImporter {}),
-});
-
-// make a macro to reduce duplication here :)
-inventory::submit!(SourceFileImporter {
-    extension: "glb",
-    instantiator: || Box::new(GltfImporter {}),
-});

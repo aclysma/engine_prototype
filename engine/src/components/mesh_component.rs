@@ -9,13 +9,13 @@ use type_uuid::*;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use serde_diff::{SerdeDiff, DiffContext, ApplyContext};
 use minimum::editor::EditorSelectableTransformed;
-use legion::storage::ComponentStorage;
-use legion::index::ComponentIndex;
+use legion::storage::{ComponentStorage, Archetype, Components, ComponentWriter};
+use legion::storage::ComponentIndex;
 use renderer::visibility::DynamicVisibilityNodeSet;
 use renderer::visibility::DynamicAabbVisibilityNode;
 
 use imgui_inspect_derive::Inspect;
-use legion::prelude::{Entity, Resources, World, EntityStore};
+use legion::{Entity, Resources, World, EntityStore};
 use minimum::resources::editor::OpenedPrefabState;
 use minimum::components::{TransformComponentDef};
 use ncollide3d::pipeline::{CollisionGroups, GeometricQueryType};
@@ -26,7 +26,6 @@ use imgui::Ui;
 use imgui_inspect::{InspectArgsDefault, InspectArgsStruct};
 use std::ops::{Deref, DerefMut, Range};
 use legion_prefab::SpawnFrom;
-use legion_transaction::iter_components_in_storage;
 use crate::components::EditableHandle;
 use ncollide3d::shape::Cuboid;
 use minimum::math::na_convert::vec3_glam_to_glm;
@@ -41,8 +40,8 @@ pub struct MeshComponentDef {
 legion_prefab::register_component_type!(MeshComponentDef);
 
 pub struct MeshComponent {
-    pub mesh_handle: MeshRenderNodeHandle,
-    pub visibility_handle: DynamicAabbVisibilityNodeHandle,
+    //pub mesh_handle: MeshRenderNodeHandle,
+    //pub visibility_handle: DynamicAabbVisibilityNodeHandle,
     pub mesh: Option<Handle<MeshAsset>>,
 }
 
@@ -66,7 +65,7 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
 
                 use ncollide3d::shape::ShapeHandle;
                 use ncollide3d::shape::Ball;
-                if let Some(transform) = prefab_world.get_component::<TransformComponentDef>(prefab_entity) {
+                if let Some(transform) = prefab_world.entry_ref(prefab_entity).unwrap().get_component::<TransformComponentDef>().ok() {
                     let x = bounding_aabb.max.x() - bounding_aabb.min.x();
                     let y = bounding_aabb.max.y() - bounding_aabb.min.y();
                     let z = bounding_aabb.max.z() - bounding_aabb.min.z();
@@ -109,42 +108,39 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
 
 impl SpawnFrom<MeshComponentDef> for MeshComponent {
     fn spawn_from(
-        _src_world: &World,
-        src_component_storage: &ComponentStorage,
-        src_component_storage_indexes: Range<ComponentIndex>,
         resources: &Resources,
-        _src_entities: &[Entity],
-        dst_entities: &[Entity],
-        from: &[MeshComponentDef],
-        into: &mut [std::mem::MaybeUninit<Self>],
+        src_entity_range: Range<usize>,
+        src_arch: &Archetype,
+        src_components: &Components,
+        dst: &mut ComponentWriter<Self>,
+        push_fn: fn(&mut ComponentWriter<Self>, Self)
     ) {
         let mut mesh_render_nodes = resources.get_mut::<MeshRenderNodeSet>().unwrap();
         let mut dynamic_visibility_node_set =
             resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
+        let mesh_component_defs = legion_transaction::get_component_slice_from_archetype::<MeshComponentDef>(src_components, src_arch, src_entity_range).unwrap();
 
-        for (from, into, dst_entity) in izip!(
-            from,
-            into,
-            dst_entities
-        ) {
-            let mesh_render_node_handle = mesh_render_nodes.register_mesh(MeshRenderNode {
-                entity: *dst_entity
-            });
+        for mesh_component_def in mesh_component_defs {
+            // let mesh_render_node_handle = mesh_render_nodes.register_mesh(MeshRenderNode {
+            //     entity: *dst_entity
+            // });
+            //
+            // let visibility_node_handle = dynamic_visibility_node_set.register_dynamic_aabb(DynamicAabbVisibilityNode {
+            //     handle: mesh_render_node_handle.into(),
+            //     // aabb bounds
+            // });
 
-            let aabb_info = DynamicAabbVisibilityNode {
-                handle: mesh_render_node_handle.into(),
-                // aabb bounds
-            };
-            let visibility_node_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
-
-            let mesh_handle = from.mesh.as_ref().map(|x| x.handle.clone());
-
-            *into = std::mem::MaybeUninit::new(MeshComponent {
-                mesh_handle: mesh_render_node_handle,
-                visibility_handle: visibility_node_handle,
+            let mesh_handle = mesh_component_def.mesh.as_ref().map(|x| x.handle.clone());
+            let mesh_component = MeshComponent {
+                //mesh_handle: mesh_render_node_handle,
+                //visibility_handle: visibility_node_handle,
                 mesh: mesh_handle
                 //delete_body_tx: physics.delete_body_tx().clone(),
-            })
+            };
+
+            (push_fn)(dst, mesh_component)
+
+            //*into = std::mem::MaybeUninit::new()
         }
     }
 }

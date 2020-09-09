@@ -10,7 +10,7 @@ use atelier_assets::loader::rpc_loader::RpcLoader;
 use minimum::ComponentRegistry;
 use minimum::resources::editor::Keybinds;
 use crate::components::{MeshComponentDef, MeshComponent, SpotLightComponent, PointLightComponent, DirectionalLightComponent};
-use legion::prelude::Resources;
+use legion::Resources;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
 

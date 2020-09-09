@@ -1,4 +1,4 @@
-use legion::prelude::*;
+use legion::*;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
 

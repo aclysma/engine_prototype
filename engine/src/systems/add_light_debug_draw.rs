@@ -1,4 +1,4 @@
-use legion::prelude::*;
+use legion::*;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
 use crate::components::{
@@ -7,8 +7,8 @@ use crate::components::{
 use minimum::resources::{DebugDraw3DResource, DebugDraw3DDepthBehavior};
 use minimum::components::{TransformComponentDef, TransformComponent};
 
-pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
-    SystemBuilder::new("quit_if_escape_pressed")
+pub fn add_light_debug_draw(schedule: &mut legion::systems::Builder) {
+    schedule.add_system(SystemBuilder::new("quit_if_escape_pressed")
         .write_resource::<DebugDraw3DResource>()
         .with_query(<Read<DirectionalLightComponent>>::query())
         .with_query(<(Read<TransformComponent>, Read<PointLightComponent>)>::query())
@@ -44,5 +44,5 @@ pub fn add_light_debug_draw() -> Box<dyn Schedulable> {
                     );
                 }
             },
-        )
+        ));
 }

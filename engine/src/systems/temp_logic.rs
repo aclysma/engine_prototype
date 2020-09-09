@@ -19,12 +19,13 @@
 // }
 
 
-use legion::prelude::{SystemBuilder, Schedulable};
+use legion::SystemBuilder;
+use legion::Schedule;
 use minimum::resources::{ImguiResource, InputResource, ViewportResource, DebugDraw3DDepthBehavior};
 use crate::features::debug3d::DebugDraw3DResource;
 
-pub fn imgui_draw_mouse_coordinates() -> Box<dyn Schedulable> {
-    SystemBuilder::new("imgui_draw_mouse_coordinates")
+pub fn imgui_draw_mouse_coordinates(schedule: &mut legion::systems::Builder) {
+    schedule.add_system(SystemBuilder::new("imgui_draw_mouse_coordinates")
         .write_resource::<ImguiResource>()
         .read_resource::<InputResource>()
         .read_resource::<ViewportResource>()
@@ -66,5 +67,5 @@ pub fn imgui_draw_mouse_coordinates() -> Box<dyn Schedulable> {
                     )
                 });
             },
-        )
+        ));
 }

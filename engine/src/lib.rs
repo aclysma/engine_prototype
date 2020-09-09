@@ -16,7 +16,7 @@ use sdl2::event::Event;
 
 use sdl2::mouse::MouseState;
 
-use legion::prelude::*;
+use legion::*;
 
 use minimum::resources::*;
 
@@ -44,6 +44,7 @@ use atelier_assets::loader::rpc_loader::RpcLoader;
 
 mod asset_loader;
 pub mod assets;
+pub mod daemon;
 mod features;
 mod game_renderer;
 mod init;
@@ -104,9 +105,7 @@ pub fn run(connect_string: String) {
         .event_pump()
         .expect("Could not create sdl event pump");
 
-    let universe = Universe::new();
-    let mut world = universe.create_world();
-    resources.insert(UniverseResource::new(universe));
+    let mut world = World::default();
 
     // test_scene::populate_test_sprite_entities(&mut resources, &mut world);
     //test_scene::populate_test_mesh_entities(&mut resources, &mut world);
@@ -123,7 +122,7 @@ pub fn run(connect_string: String) {
 
 
     // Default scene file
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
+    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
 
     // sponza gltf
     //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("8eecc4d2-d0b4-4edf-a35b-8a1835bde068")).unwrap();
@@ -133,7 +132,7 @@ pub fn run(connect_string: String) {
 
 
     // sponza cleaned up
-    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("df741a2e-2073-4f8c-9e4e-e52c29ad22e1")).unwrap();
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("b6338981-3c25-419e-85f6-8c25ebaeead9")).unwrap();
 
 
     // frenet
@@ -255,7 +254,6 @@ pub fn run(connect_string: String) {
 // (X) TimeResource - DONE
 // (X) InputResource _ YES, INIT IT
 // (-) CanvasDrawResource - no
-// (X) UniverseResource - YES, INIT IT
 // (-) Sdl2WindowResource - no
 // (X) EditorStateResource - PROBABALY FOR NOW
 // (X) EditorSettingsResource - PROBABLY FOR NOW

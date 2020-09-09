@@ -10,12 +10,12 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use serde_diff::{SerdeDiff, DiffContext, ApplyContext};
 use minimum::editor::EditorSelectableTransformed;
 use legion::storage::ComponentStorage;
-use legion::index::ComponentIndex;
+use legion::storage::ComponentIndex;
 use renderer::visibility::DynamicVisibilityNodeSet;
 use renderer::visibility::DynamicAabbVisibilityNode;
 
 use imgui_inspect_derive::Inspect;
-use legion::prelude::{Entity, Resources, World, EntityStore};
+use legion::{Entity, Resources, World, EntityStore};
 use minimum::resources::editor::OpenedPrefabState;
 use minimum::components::{TransformComponentDef};
 use ncollide3d::pipeline::{CollisionGroups, GeometricQueryType};
@@ -26,7 +26,6 @@ use imgui::Ui;
 use imgui_inspect::{InspectArgsDefault, InspectArgsStruct};
 use std::ops::{Deref, DerefMut, Range};
 use legion_prefab::SpawnFrom;
-use legion_transaction::iter_components_in_storage;
 
 mod editable_handle;
 pub use editable_handle::EditableHandle;

@@ -12,7 +12,7 @@ pub use temp_logic::imgui_draw_mouse_coordinates;
 
 use minimum::systems::*;
 
-use legion::prelude::*;
+use legion::*;
 
 use minimum::editor::resources::EditorMode;
 use fnv::FnvHashMap;
@@ -39,7 +39,7 @@ impl ScheduleCriteria {
 
 struct ScheduleBuilder<'a> {
     criteria: &'a ScheduleCriteria,
-    schedule: legion::systems::schedule::Builder,
+    schedule: legion::systems::Builder,
 }
 
 impl<'a> ScheduleBuilder<'a> {
@@ -50,7 +50,7 @@ impl<'a> ScheduleBuilder<'a> {
         }
     }
 
-    fn build(self) -> Schedule {
+    fn build(mut self) -> Schedule {
         self.schedule.build()
     }
 
@@ -58,10 +58,10 @@ impl<'a> ScheduleBuilder<'a> {
         mut self,
         f: F,
     ) -> Self
-    where
-        F: Fn() -> Box<dyn Schedulable>,
+        where
+            F: Fn(&mut legion::systems::Builder),
     {
-        self.schedule = self.schedule.add_system((f)());
+        (f)(&mut self.schedule);
         self
     }
 
@@ -69,11 +69,11 @@ impl<'a> ScheduleBuilder<'a> {
         mut self,
         f: F,
     ) -> Self
-    where
-        F: Fn() -> Box<dyn Schedulable>,
+        where
+            F: Fn(&mut legion::systems::Builder),
     {
         if self.criteria.editor_mode == EditorMode::Active {
-            self.schedule = self.schedule.add_system((f)());
+            (f)(&mut self.schedule);
         }
 
         self
@@ -83,11 +83,11 @@ impl<'a> ScheduleBuilder<'a> {
         mut self,
         f: F,
     ) -> Self
-    where
-        F: Fn() -> Box<dyn Schedulable>,
+        where
+            F: Fn(&mut legion::systems::Builder),
     {
         if !self.criteria.is_simulation_paused {
-            self.schedule = self.schedule.add_system((f)());
+            (f)(&mut self.schedule);
         }
 
         self
@@ -97,12 +97,12 @@ impl<'a> ScheduleBuilder<'a> {
         mut self,
         f: F,
     ) -> Self {
-        self.schedule = self.schedule.add_thread_local_fn(f);
+        self.schedule.add_thread_local_fn(f);
         self
     }
 
     fn flush(mut self) -> Self {
-        self.schedule = self.schedule.flush();
+        self.schedule.flush();
         self
     }
 }

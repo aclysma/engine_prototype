@@ -1,4 +1,4 @@
-use legion::prelude::{Resources, World, EntityStore};
+use legion::{Resources, World, EntityStore};
 use minimum::resources::AssetResource;
 use glam::f32::Vec3;
 use crate::features::sprite::{SpriteRenderNodeSet, SpriteRenderNode};
@@ -76,8 +76,7 @@ pub fn populate_test_sprite_entities(
                 image: sprite_image.clone(),
             };
 
-            let entity = world.insert(
-                (),
+            let entity = world.extend(
                 (0..1).map(|_| (transform_component.clone(), sprite_component.clone())),
             )[0];
 
@@ -128,12 +127,12 @@ pub fn populate_test_mesh_entities(
 
             let transform_component = TransformComponent::from_position(position);
             let mesh_component = MeshComponent {
-                mesh_handle,
-                visibility_handle,
+                // mesh_handle,
+                // visibility_handle,
                 mesh: Some(mesh.clone()),
             };
 
-            let entity = world.insert((), vec![(transform_component, mesh_component)])[0];
+            let entity = world.extend(vec![(transform_component, mesh_component)])[0];
 
             MeshRenderNode {
                 entity, // sprite asset
@@ -203,7 +202,7 @@ fn add_directional_light(
     world: &mut World,
     light_component: DirectionalLightComponent,
 ) {
-    world.insert((), vec![(light_component,)]);
+    world.extend(vec![(light_component,)]);
 }
 
 fn add_spot_light(
@@ -214,7 +213,7 @@ fn add_spot_light(
 ) {
     let transform_component = TransformComponent::from_position(position);
 
-    world.insert((), vec![(transform_component, light_component)]);
+    world.extend(vec![(transform_component, light_component)]);
 }
 
 fn add_point_light(
@@ -225,5 +224,5 @@ fn add_point_light(
 ) {
     let transform_component = TransformComponent::from_position(position);
 
-    world.insert((), vec![(transform_component, light_component)]);
+    world.extend(vec![(transform_component, light_component)]);
 }

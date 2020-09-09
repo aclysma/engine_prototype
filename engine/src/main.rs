@@ -32,7 +32,7 @@ fn main() {
     // Spawn the daemon in a background thread. This could be a different process, but
     // for simplicity we'll launch it here.
     std::thread::spawn(move || {
-        minimum::daemon::run();
+        engine::daemon::run();
     });
 
     engine::run("127.0.0.1:9999".to_string());

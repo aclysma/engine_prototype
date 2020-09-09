@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use serde_diff::SerdeDiff;
 use imgui_inspect_derive::Inspect;
 use minimum::math::Vec3;
-use legion::prelude::{World, Entity, Resources, EntityStore};
+use legion::{World, Entity, Resources, EntityStore};
 use minimum::resources::editor::OpenedPrefabState;
 use minimum::components::{TransformComponentDef, TransformComponent};
 use ncollide3d::shape::{ShapeHandle, Ball};
@@ -34,7 +34,7 @@ impl EditorSelectable for DirectionalLightComponent {
         prefab_world: &World,
         prefab_entity: Entity,
     ) {
-        if let Some(transform) = prefab_world.get_component::<TransformComponent>(prefab_entity) {
+        if let Some(transform) = prefab_world.entry_ref(prefab_entity).unwrap().get_component::<TransformComponent>().ok() {
             let shape_handle = ShapeHandle::new(Ball::new(
                 0.25
             ));

@@ -13,7 +13,7 @@ use renderer::vulkan::VkDeviceContext;
 use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetAllocatorRef};
 use atelier_assets::loader::handle::Handle;
 use renderer::assets::resources::DescriptorSetArc;
-use legion::prelude::EntityStore;
+use legion::EntityStore;
 use renderer::assets::MaterialAsset;
 use minimum::components::{TransformComponentDef, TransformComponent};
 
@@ -144,22 +144,35 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .unwrap();
         let sprite_render_node = sprite_nodes.sprites.get(render_node_handle).unwrap();
 
-        let position_component = extract_context
+        let entity = extract_context
             .world
-            .get_component::<TransformComponent>(sprite_render_node.entity)
+            .entry_ref(sprite_render_node.entity)
             .unwrap();
-        let sprite_component = extract_context
-            .world
-            .get_component::<SpriteComponent>(sprite_render_node.entity)
-            .unwrap();
+
+        let transform_component = entity
+            .get_component::<TransformComponent>()
+            .ok();
+        let sprite_component = entity
+            .get_component::<SpriteComponent>()
+            .ok();
+
+        if transform_component.is_none() || sprite_component.is_none() {
+            self.extracted_frame_node_sprite_data.push(None);
+            return;
+        }
+
+        let transform_component = transform_component.unwrap();
+        let sprite_component = sprite_component.unwrap();
 
         let image_info = extract_context
             .resource_manager
             .get_image_info(&sprite_component.image);
+
         if image_info.is_none() {
             self.extracted_frame_node_sprite_data.push(None);
             return;
         }
+
         let image_info = image_info.unwrap();
 
         let descriptor_set_info =
@@ -179,7 +192,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 
         self.extracted_frame_node_sprite_data
             .push(Some(ExtractedSpriteData {
-                position: position_component.position(),
+                position: transform_component.position(),
                 texture_size: glam::Vec2::new(50.0, 50.0),
                 scale: 1.0,
                 rotation: 0.0,
