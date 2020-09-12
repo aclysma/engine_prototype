@@ -1,7 +1,7 @@
 (
     version: 1,
-    import_hash: Some(15632381897028134035),
-    importer_version: 26,
+    import_hash: Some(15961793563962111973),
+    importer_version: 27,
     importer_type: "fc9ae812-110d-4daf-9223-e87b40966c6b",
     importer_options: (),
     importer_state: (
@@ -19,7 +19,9 @@
         mesh_asset_uuids: [
             (Name("Cube.001"), "8046e24f-fc44-4755-b9b3-f145fac321f1"),
         ],
-        prefab_asset_uuids: [],
+        prefab_asset_uuids: [
+            (Name("Scene"), "505150ec-6dbe-40ed-a0cb-0a0654d3435a"),
+        ],
     ),
     assets: [
         (
@@ -30,7 +32,7 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 14771587166234652310,
+                hash: 14035620738372534834,
                 id: "b8cd97e1-5479-4295-a52f-3ca4cfc703e5",
                 build_deps: [],
                 load_deps: [],
@@ -48,15 +50,15 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 3043346514026368453,
+                hash: 4282648515579673744,
                 id: "4cd67194-4432-4810-859e-8e594a2f30e2",
                 build_deps: [
-                    Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
                     Uuid("be831a21-f4f6-45d4-b9eb-e1bb6fc19d22"),
+                    Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
                 ],
                 load_deps: [
-                    Uuid("be831a21-f4f6-45d4-b9eb-e1bb6fc19d22"),
                     Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
+                    Uuid("be831a21-f4f6-45d4-b9eb-e1bb6fc19d22"),
                 ],
                 compression: None,
                 compressed_size: Some(414),
@@ -71,7 +73,7 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 15862352778940143590,
+                hash: 14185743218968912600,
                 id: "71c842a8-a590-415a-9e05-a6677d266ccb",
                 build_deps: [],
                 load_deps: [],
@@ -88,7 +90,7 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 11237488436247640934,
+                hash: 17918430191944197506,
                 id: "72da2175-9bac-4bc8-90bc-2b48261c6571",
                 build_deps: [],
                 load_deps: [],
@@ -106,19 +108,19 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 873255189967549684,
+                hash: 16209232293148504368,
                 id: "8046e24f-fc44-4755-b9b3-f145fac321f1",
                 build_deps: [
                     Uuid("b8cd97e1-5479-4295-a52f-3ca4cfc703e5"),
-                    Uuid("4cd67194-4432-4810-859e-8e594a2f30e2"),
                     Uuid("72da2175-9bac-4bc8-90bc-2b48261c6571"),
                     Uuid("71c842a8-a590-415a-9e05-a6677d266ccb"),
+                    Uuid("4cd67194-4432-4810-859e-8e594a2f30e2"),
                 ],
                 load_deps: [
-                    Uuid("b8cd97e1-5479-4295-a52f-3ca4cfc703e5"),
                     Uuid("71c842a8-a590-415a-9e05-a6677d266ccb"),
-                    Uuid("72da2175-9bac-4bc8-90bc-2b48261c6571"),
                     Uuid("4cd67194-4432-4810-859e-8e594a2f30e2"),
+                    Uuid("b8cd97e1-5479-4295-a52f-3ca4cfc703e5"),
+                    Uuid("72da2175-9bac-4bc8-90bc-2b48261c6571"),
                 ],
                 compression: None,
                 compressed_size: Some(160),
@@ -127,15 +129,15 @@
             )),
         ),
         (
-            id: "31539814-2757-4c9c-af49-8bad1f98ba2a",
+            id: "505150ec-6dbe-40ed-a0cb-0a0654d3435a",
             search_tags: [
-                ("mesh_name", Some("Scene")),
+                ("scene_name", Some("Scene")),
                 ("file_name", Some("light.glb")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 1584385472440029782,
-                id: "31539814-2757-4c9c-af49-8bad1f98ba2a",
+                hash: 7826779836754080606,
+                id: "505150ec-6dbe-40ed-a0cb-0a0654d3435a",
                 build_deps: [
                     Uuid("8046e24f-fc44-4755-b9b3-f145fac321f1"),
                 ],
@@ -143,8 +145,8 @@
                     Uuid("8046e24f-fc44-4755-b9b3-f145fac321f1"),
                 ],
                 compression: None,
-                compressed_size: Some(217),
-                uncompressed_size: Some(217),
+                compressed_size: Some(417),
+                uncompressed_size: Some(417),
                 type_id: "5e751ea4-e63b-4192-a008-f5bf8674e45b",
             )),
         ),

@@ -118,34 +118,11 @@ pub fn run(connect_string: String) {
     #[cfg(feature = "use_imgui")]
     let sdl2_imgui = resources.get::<Sdl2ImguiManager>().unwrap().clone();
 
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("12b37b66-94f7-4fa6-abb3-4050619c3e11")).unwrap();
-
-
     // Default scene file
-    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
-
-    // sponza gltf
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("8eecc4d2-d0b4-4edf-a35b-8a1835bde068")).unwrap();
-
-    // sponza gltf more stuff
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("19aa8933-9a66-41b1-b72f-74bc6681e22a")).unwrap();
-
+    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
 
     // sponza cleaned up
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("b6338981-3c25-419e-85f6-8c25ebaeead9")).unwrap();
-
-
-    // frenet
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("48ea3c0f-dcfa-4e6d-aef2-7ae3b890bde4")).unwrap();
-
-    // frenet z up
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("016092c7-af00-4936-9960-1a9d68cfa273")).unwrap();
-
-    // diagonal
-    //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("d334250c-8a61-452d-a96a-6deeeb75b8a6")).unwrap();
-
-
-
+    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("b6338981-3c25-419e-85f6-8c25ebaeead9")).unwrap();
 
     'running: loop {
         let t0 = std::time::Instant::now();

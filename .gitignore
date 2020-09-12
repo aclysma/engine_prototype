@@ -2,3 +2,4 @@
 Cargo.lock
 .idea
 .assets_db
+/assets_unsaved

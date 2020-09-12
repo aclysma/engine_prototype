@@ -1,7 +1,7 @@
 (
     version: 1,
-    import_hash: Some(11415355834795939179),
-    importer_version: 26,
+    import_hash: Some(17670893935570561872),
+    importer_version: 27,
     importer_type: "fc9ae812-110d-4daf-9223-e87b40966c6b",
     importer_options: (),
     importer_state: (
@@ -19,7 +19,9 @@
         mesh_asset_uuids: [
             (Name("Cube.001"), "7d1f4efa-8910-439d-9cc5-998323376dff"),
         ],
-        prefab_asset_uuids: [],
+        prefab_asset_uuids: [
+            (Name("Scene"), "74cf60ae-90f7-4e19-be81-4449c170652a"),
+        ],
     ),
     assets: [
         (
@@ -30,7 +32,7 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 13093136990196061043,
+                hash: 94626666843666886,
                 id: "f2b8ef5d-2446-46d8-93ed-60ff0b63d541",
                 build_deps: [],
                 load_deps: [],
@@ -48,11 +50,11 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 832378097300106009,
+                hash: 3697951280199800647,
                 id: "99aaa404-defe-424b-8e14-90fa04a286d8",
                 build_deps: [
-                    Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
                     Uuid("be831a21-f4f6-45d4-b9eb-e1bb6fc19d22"),
+                    Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
                 ],
                 load_deps: [
                     Uuid("267e0388-2611-441c-9c78-2d39d1bd3cf1"),
@@ -71,7 +73,7 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 5687241782138302896,
+                hash: 5713088418388459405,
                 id: "9b0326b9-955d-42a6-8dd2-8abbcb96b2aa",
                 build_deps: [],
                 load_deps: [],
@@ -88,7 +90,7 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 6529395694958513545,
+                hash: 16739979987944590305,
                 id: "7460440b-f3c7-4271-983a-31db0f2efd87",
                 build_deps: [],
                 load_deps: [],
@@ -106,19 +108,19 @@
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 9882969340993905447,
+                hash: 12034886156597713958,
                 id: "7d1f4efa-8910-439d-9cc5-998323376dff",
                 build_deps: [
-                    Uuid("9b0326b9-955d-42a6-8dd2-8abbcb96b2aa"),
-                    Uuid("f2b8ef5d-2446-46d8-93ed-60ff0b63d541"),
-                    Uuid("99aaa404-defe-424b-8e14-90fa04a286d8"),
                     Uuid("7460440b-f3c7-4271-983a-31db0f2efd87"),
+                    Uuid("f2b8ef5d-2446-46d8-93ed-60ff0b63d541"),
+                    Uuid("9b0326b9-955d-42a6-8dd2-8abbcb96b2aa"),
+                    Uuid("99aaa404-defe-424b-8e14-90fa04a286d8"),
                 ],
                 load_deps: [
+                    Uuid("9b0326b9-955d-42a6-8dd2-8abbcb96b2aa"),
                     Uuid("7460440b-f3c7-4271-983a-31db0f2efd87"),
                     Uuid("99aaa404-defe-424b-8e14-90fa04a286d8"),
                     Uuid("f2b8ef5d-2446-46d8-93ed-60ff0b63d541"),
-                    Uuid("9b0326b9-955d-42a6-8dd2-8abbcb96b2aa"),
                 ],
                 compression: None,
                 compressed_size: Some(160),
@@ -127,15 +129,15 @@
             )),
         ),
         (
-            id: "9d741952-1c82-4c7a-a6d2-d5d238418a07",
+            id: "74cf60ae-90f7-4e19-be81-4449c170652a",
             search_tags: [
-                ("mesh_name", Some("Scene")),
+                ("scene_name", Some("Scene")),
                 ("file_name", Some("light.gltf")),
             ],
             build_pipeline: None,
             artifact: Some((
-                hash: 7294175456206754859,
-                id: "9d741952-1c82-4c7a-a6d2-d5d238418a07",
+                hash: 17026815140658767856,
+                id: "74cf60ae-90f7-4e19-be81-4449c170652a",
                 build_deps: [
                     Uuid("7d1f4efa-8910-439d-9cc5-998323376dff"),
                 ],
@@ -143,8 +145,8 @@
                     Uuid("7d1f4efa-8910-439d-9cc5-998323376dff"),
                 ],
                 compression: None,
-                compressed_size: Some(217),
-                uncompressed_size: Some(217),
+                compressed_size: Some(417),
+                uncompressed_size: Some(417),
                 type_id: "5e751ea4-e63b-4192-a008-f5bf8674e45b",
             )),
         ),
