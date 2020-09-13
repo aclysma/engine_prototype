@@ -137,8 +137,8 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
         self.extracted_frame_node_mesh_data
             .push(Some(ExtractedFrameNodeMeshData {
                 world_transform,
-                vertex_buffer: mesh_info.vertex_buffer.clone(),
-                index_buffer: mesh_info.index_buffer.clone(),
+                vertex_buffer: mesh_info.vertex_buffer,
+                index_buffer: mesh_info.index_buffer,
                 draw_calls,
             }));
     }
@@ -209,8 +209,8 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             let light_direction_vs = (light_to_vs - light_from_vs).normalize();
 
             let out = &mut per_view_data.directional_lights[light_count];
-            out.direction_ws = light_direction.into();
-            out.direction_vs = light_direction_vs.into();
+            out.direction_ws = light_direction;
+            out.direction_vs = light_direction_vs;
             out.color = light.color.extend(1.0);
             out.intensity = light.intensity;
 
@@ -250,10 +250,10 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             let light_direction_vs = (light_to_vs - light_from_vs).normalize();
 
             let out = &mut per_view_data.spot_lights[light_count];
-            out.position_ws = light_from.into();
-            out.position_vs = light_from_vs.into();
-            out.direction_ws = light_direction.into();
-            out.direction_vs = light_direction_vs.into();
+            out.position_ws = light_from;
+            out.position_vs = light_from_vs;
+            out.direction_ws = light_direction;
+            out.direction_vs = light_direction_vs;
             out.spotlight_half_angle = light.spotlight_half_angle;
             out.color = light.color.extend(1.0);
             out.range = light.range;

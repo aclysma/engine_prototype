@@ -99,10 +99,8 @@ impl RenderFrameJob {
         //
         // Write Jobs - called from within renderpasses for now
         //
-        let write_context_factory = RenderJobWriteContextFactory::new(
-            device_context.clone(),
-            prepare_context.dyn_resource_lookups,
-        );
+        let write_context_factory =
+            RenderJobWriteContextFactory::new(device_context, prepare_context.dyn_resource_lookups);
 
         //
         // Opaque renderpass
@@ -115,8 +113,7 @@ impl RenderFrameJob {
             &main_view,
             &write_context_factory,
         )?;
-        command_buffers
-            .push(swapchain_resources.opaque_renderpass.command_buffers[present_index].clone());
+        command_buffers.push(swapchain_resources.opaque_renderpass.command_buffers[present_index]);
 
         //
         // Debug Renderpass
@@ -132,8 +129,7 @@ impl RenderFrameJob {
             descriptor_set_per_pass,
             //debug_draw_3d_line_lists,
         )?;
-        command_buffers
-            .push(swapchain_resources.msaa_renderpass.command_buffers[present_index].clone());
+        command_buffers.push(swapchain_resources.msaa_renderpass.command_buffers[present_index]);
 
         //
         // bloom extract
@@ -147,24 +143,23 @@ impl RenderFrameJob {
         swapchain_resources
             .bloom_extract_renderpass
             .update(present_index, descriptor_set_per_pass)?;
-        command_buffers.push(
-            swapchain_resources.bloom_extract_renderpass.command_buffers[present_index].clone(),
-        );
+        command_buffers
+            .push(swapchain_resources.bloom_extract_renderpass.command_buffers[present_index]);
 
         //
         // bloom blur
         //
         log::trace!("bloom_blur_renderpass update");
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0].clone());
-        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1].clone());
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[0]);
+        command_buffers.push(swapchain_resources.bloom_blur_renderpass.command_buffers[1]);
 
         //
         // bloom combine
@@ -178,9 +173,8 @@ impl RenderFrameJob {
         swapchain_resources
             .bloom_combine_renderpass
             .update(present_index, descriptor_set_per_pass)?;
-        command_buffers.push(
-            swapchain_resources.bloom_combine_renderpass.command_buffers[present_index].clone(),
-        );
+        command_buffers
+            .push(swapchain_resources.bloom_combine_renderpass.command_buffers[present_index]);
 
         //
         // imgui
@@ -192,8 +186,7 @@ impl RenderFrameJob {
             &main_view,
             &write_context_factory,
         )?;
-        command_buffers
-            .push(swapchain_resources.ui_renderpass.command_buffers[present_index].clone());
+        command_buffers.push(swapchain_resources.ui_renderpass.command_buffers[present_index]);
 
         let t2 = std::time::Instant::now();
         log::trace!(

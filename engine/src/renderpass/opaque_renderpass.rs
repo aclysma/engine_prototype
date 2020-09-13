@@ -160,7 +160,7 @@ impl VkOpaqueRenderPass {
             .framebuffer(framebuffer)
             .render_area(vk::Rect2D {
                 offset: vk::Offset2D { x: 0, y: 0 },
-                extent: swapchain_info.extents.clone(),
+                extent: swapchain_info.extents,
             })
             .clear_values(&clear_values);
 

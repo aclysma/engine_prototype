@@ -151,13 +151,11 @@ pub fn run(connect_string: String) {
             if !ignore_event {
                 minimum_sdl2::input::handle_sdl2_event(&event, input_resource.input_state_mut());
 
-                match event {
-                    //
-                    // Halt if the user requests to close the window
-                    //
-                    Event::Quit { .. } => break 'running,
-
-                    _ => {}
+                //
+                // Halt if the user requests to close the window
+                //
+                if let Event::Quit { .. } = event {
+                    break 'running;
                 }
             }
         }

@@ -548,8 +548,8 @@ impl Importer for GltfImporter {
 
 fn extract_images_to_import(
     doc: &gltf::Document,
-    _buffers: &Vec<GltfBufferData>,
-    images: &Vec<GltfImageData>,
+    _buffers: &[GltfBufferData],
+    images: &[GltfImageData],
     image_color_space_assignments: &FnvHashMap<usize, ColorSpace>,
 ) -> Vec<ImageToImport> {
     let mut images_to_import = Vec::with_capacity(images.len());
@@ -634,7 +634,7 @@ fn extract_images_to_import(
         let id = image
             .name()
             .map(|s| GltfObjectId::Name(s.to_string()))
-            .unwrap_or(GltfObjectId::Index(image.index()));
+            .unwrap_or_else(|| GltfObjectId::Index(image.index()));
 
         let image_to_import = ImageToImport { id, asset };
 
@@ -694,8 +694,8 @@ fn build_image_color_space_assignments_from_materials(
 
 fn extract_materials_to_import(
     doc: &gltf::Document,
-    _buffers: &Vec<GltfBufferData>,
-    _images: &Vec<GltfImageData>,
+    _buffers: &[GltfBufferData],
+    _images: &[GltfImageData],
     image_index_to_handle: &[Handle<ImageAsset>],
 ) -> Vec<MaterialToImport> {
     let mut materials_to_import = Vec::with_capacity(doc.materials().len());
@@ -771,7 +771,7 @@ fn extract_materials_to_import(
         let id = material
             .name()
             .map(|s| GltfObjectId::Name(s.to_string()))
-            .unwrap_or(GltfObjectId::Index(material.index().unwrap()));
+            .unwrap_or_else(|| GltfObjectId::Index(material.index().unwrap()));
 
         let material_to_import = MaterialToImport {
             id,
@@ -808,7 +808,7 @@ fn convert_to_u16_indices(
 fn extract_meshes_to_import(
     state: &mut GltfImporterStateUnstable,
     doc: &gltf::Document,
-    buffers: &Vec<GltfBufferData>,
+    buffers: &[GltfBufferData],
     material_index_to_handle: &[Handle<GltfMaterialAsset>],
     material_instance_index_to_handle: &[Handle<MaterialInstanceAsset>],
 ) -> atelier_assets::importer::Result<(Vec<MeshToImport>, Vec<BufferToImport>)> {
@@ -993,7 +993,7 @@ fn extract_meshes_to_import(
         let mesh_id = mesh
             .name()
             .map(|s| GltfObjectId::Name(s.to_string()))
-            .unwrap_or(GltfObjectId::Index(mesh.index()));
+            .unwrap_or_else(|| GltfObjectId::Index(mesh.index()));
 
         let mesh_to_import = MeshToImport { id: mesh_id, asset };
 
@@ -1108,7 +1108,7 @@ fn add_nodes_to_world(
             } => {
                 //TODO: Support inner angle. Per spec, implementations should use outer if they only
                 // accept a single value
-                std::mem::forget(inner_cone_angle);
+                let _ = inner_cone_angle;
 
                 let light_component = SpotLightComponent {
                     color,
@@ -1190,7 +1190,7 @@ fn extract_prefabs_to_import(
         let scene_id = scene
             .name()
             .map(|s| GltfObjectId::Name(s.to_string()))
-            .unwrap_or(GltfObjectId::Index(scene.index()));
+            .unwrap_or_else(|| GltfObjectId::Index(scene.index()));
 
         // If we have exported a scene with a matching ID previous, use the same uuid as last time
         if let Some(previous_uuid) = prefabs_uuids.get(&scene_id) {

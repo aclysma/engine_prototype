@@ -76,9 +76,8 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
 
                     let center = transform.position() + (center * transform.scale());
 
-                    let shape_handle = ShapeHandle::new(Cuboid::new(
-                        ncollide3d::math::Vector::from(vec3_glam_to_glm(half_extents)),
-                    ));
+                    let shape_handle =
+                        ShapeHandle::new(Cuboid::new(vec3_glam_to_glm(half_extents)));
                     let rotation = nalgebra::Quaternion::new(
                         rotation.w(),
                         rotation.x(),

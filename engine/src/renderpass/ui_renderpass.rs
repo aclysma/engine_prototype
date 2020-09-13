@@ -142,7 +142,7 @@ impl VkUiRenderPass {
             .framebuffer(framebuffer)
             .render_area(vk::Rect2D {
                 offset: vk::Offset2D { x: 0, y: 0 },
-                extent: swapchain_info.extents.clone(),
+                extent: swapchain_info.extents,
             });
 
         // Implicitly resets the command buffer
