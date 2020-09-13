@@ -68,9 +68,7 @@ pub struct GameRendererStaticResources {
 }
 
 impl GameRendererStaticResources {
-    pub fn new(
-        resources: &Resources,
-    ) -> VkResult<Self> {
+    pub fn new(resources: &Resources) -> VkResult<Self> {
         //
         // Sprite resources
         //
@@ -135,17 +133,9 @@ impl GameRendererStaticResources {
             resources,
         );
 
-        wait_for_asset_to_load(
-            &sprite_material,
-            resources,
-            "sprite_material",
-        )?;
+        wait_for_asset_to_load(&sprite_material, resources, "sprite_material")?;
 
-        wait_for_asset_to_load(
-            &debug_material_3d,
-            resources,
-            "debug material",
-        )?;
+        wait_for_asset_to_load(&debug_material_3d, resources, "debug material")?;
 
         wait_for_asset_to_load(
             &debug_material_3d_no_depth,
@@ -153,35 +143,15 @@ impl GameRendererStaticResources {
             "debug material no depth",
         )?;
 
-        wait_for_asset_to_load(
-            &bloom_extract_material,
-            resources,
-            "bloom extract material",
-        )?;
+        wait_for_asset_to_load(&bloom_extract_material, resources, "bloom extract material")?;
 
-        wait_for_asset_to_load(
-            &bloom_blur_material,
-            resources,
-            "bloom blur material",
-        )?;
+        wait_for_asset_to_load(&bloom_blur_material, resources, "bloom blur material")?;
 
-        wait_for_asset_to_load(
-            &bloom_combine_material,
-            resources,
-            "bloom combine material",
-        )?;
+        wait_for_asset_to_load(&bloom_combine_material, resources, "bloom combine material")?;
 
-        wait_for_asset_to_load(
-            &mesh_material,
-            resources,
-            "mesh material",
-        )?;
+        wait_for_asset_to_load(&mesh_material, resources, "mesh material")?;
 
-        wait_for_asset_to_load(
-            &imgui_material,
-            resources,
-            "imgui material",
-        )?;
+        wait_for_asset_to_load(&imgui_material, resources, "imgui material")?;
 
         let debug_material_2d = debug_material_3d_no_depth.clone();
 

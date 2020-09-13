@@ -71,7 +71,10 @@ pub fn rendering_init(
     // Set up imgui
     #[cfg(feature = "use_imgui")]
     {
-        let sdl2_imgui_manager = minimum_sdl2::imgui::init_imgui_manager(sdl2_window, minimum_sdl2::imgui::ColorFormat::Linear);
+        let sdl2_imgui_manager = minimum_sdl2::imgui::init_imgui_manager(
+            sdl2_window,
+            minimum_sdl2::imgui::ColorFormat::Linear,
+        );
         resources.insert(ImguiResource::new(sdl2_imgui_manager.imgui_manager()));
         resources.insert(sdl2_imgui_manager);
     }

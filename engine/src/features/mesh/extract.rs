@@ -2,9 +2,7 @@ use crate::features::mesh::{
     ExtractedFrameNodeMeshData, MeshRenderNodeSet, MeshRenderFeature, MeshRenderNode, MeshDrawCall,
     MeshPerObjectShaderParam, ExtractedViewNodeMeshData, MeshPerViewShaderParam,
 };
-use crate::components::{
-    PointLightComponent, SpotLightComponent, DirectionalLightComponent,
-};
+use crate::components::{PointLightComponent, SpotLightComponent, DirectionalLightComponent};
 use crate::render_contexts::{RenderJobExtractContext, RenderJobWriteContext, RenderJobPrepareContext};
 use renderer::nodes::{
     DefaultExtractJobImpl, FramePacket, RenderView, PerViewNode, PrepareJob, DefaultPrepareJob,
@@ -89,18 +87,15 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .entry_ref(mesh_render_node.entity)
             .unwrap();
 
-        let transform_component = entity
-            .get_component::<TransformComponent>()
-            .ok();
-        let mesh_component = entity
-            .get_component::<MeshComponent>()
-            .ok();
+        let transform_component = entity.get_component::<TransformComponent>().ok();
+        let mesh_component = entity.get_component::<MeshComponent>().ok();
 
-        let game_resource_manager = extract_context
-            .resources
-            .get::<GameResourceManager>();
+        let game_resource_manager = extract_context.resources.get::<GameResourceManager>();
 
-        if transform_component.is_none() || mesh_component.is_none() || game_resource_manager.is_none() {
+        if transform_component.is_none()
+            || mesh_component.is_none()
+            || game_resource_manager.is_none()
+        {
             self.extracted_frame_node_mesh_data.push(None);
             return;
         }
@@ -108,7 +103,10 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
         let mesh_component = mesh_component.unwrap();
         let game_resource_manager = game_resource_manager.unwrap();
 
-        let mesh_info = mesh_component.mesh.as_ref().and_then(|mesh_asset_handle| game_resource_manager.get_mesh_info(&mesh_asset_handle));
+        let mesh_info = mesh_component
+            .mesh
+            .as_ref()
+            .and_then(|mesh_asset_handle| game_resource_manager.get_mesh_info(&mesh_asset_handle));
         if mesh_info.is_none() {
             self.extracted_frame_node_mesh_data.push(None);
             return;

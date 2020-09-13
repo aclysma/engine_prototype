@@ -58,8 +58,8 @@ impl<'a> ScheduleBuilder<'a> {
         mut self,
         f: F,
     ) -> Self
-        where
-            F: Fn(&mut legion::systems::Builder),
+    where
+        F: Fn(&mut legion::systems::Builder),
     {
         (f)(&mut self.schedule);
         self
@@ -69,8 +69,8 @@ impl<'a> ScheduleBuilder<'a> {
         mut self,
         f: F,
     ) -> Self
-        where
-            F: Fn(&mut legion::systems::Builder),
+    where
+        F: Fn(&mut legion::systems::Builder),
     {
         if self.criteria.editor_mode == EditorMode::Active {
             (f)(&mut self.schedule);
@@ -83,8 +83,8 @@ impl<'a> ScheduleBuilder<'a> {
         mut self,
         f: F,
     ) -> Self
-        where
-            F: Fn(&mut legion::systems::Builder),
+    where
+        F: Fn(&mut legion::systems::Builder),
     {
         if !self.criteria.is_simulation_paused {
             (f)(&mut self.schedule);
@@ -189,7 +189,6 @@ impl ScheduleManager {
             .always(editor_gizmos)
             .always(editor_handle_selection);
 
-
         #[cfg(feature = "use_imgui")]
         {
             builder = builder
@@ -199,7 +198,8 @@ impl ScheduleManager {
         }
 
         // Editor processing
-        builder.always_thread_local(editor_process_edit_diffs)
+        builder
+            .always_thread_local(editor_process_edit_diffs)
             .always_thread_local(editor_process_selection_ops)
             .always_thread_local(editor_process_editor_ops)
             // Editor output

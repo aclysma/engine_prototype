@@ -8,7 +8,10 @@ use gltf::image::Data as GltfImageData;
 use gltf::buffer::Data as GltfBufferData;
 use fnv::FnvHashMap;
 use atelier_assets::loader::handle::Handle;
-use crate::assets::gltf::{GltfMaterialAsset, MeshAssetData, MeshPartData, MeshVertex, GltfMaterialDataShaderParam, MeshAsset};
+use crate::assets::gltf::{
+    GltfMaterialAsset, MeshAssetData, MeshPartData, MeshVertex, GltfMaterialDataShaderParam,
+    MeshAsset,
+};
 use renderer::assets::assets::{ImageAssetData, ColorSpace};
 use renderer::assets::assets::BufferAssetData;
 use renderer::assets::push_buffer::PushBuffer;
@@ -25,7 +28,9 @@ use itertools::Itertools;
 use legion::*;
 use minimum::pipeline::PrefabAsset;
 use minimum::components::{TransformComponentDef, EditorMetadataComponent, TransformComponent};
-use crate::components::{MeshComponentDef, DirectionalLightComponent, PointLightComponent, SpotLightComponent};
+use crate::components::{
+    MeshComponentDef, DirectionalLightComponent, PointLightComponent, SpotLightComponent,
+};
 use legion_prefab::{Prefab};
 use gltf::camera::Projection;
 
@@ -101,12 +106,36 @@ pub struct GltfImporterStateStable {
 impl From<GltfImporterStateUnstable> for GltfImporterStateStable {
     fn from(other: GltfImporterStateUnstable) -> Self {
         let mut stable = GltfImporterStateStable::default();
-        stable.buffer_asset_uuids = other.buffer_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
-        stable.image_asset_uuids = other.image_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
-        stable.material_asset_uuids = other.material_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
-        stable.material_instance_asset_uuids = other.material_instance_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
-        stable.mesh_asset_uuids = other.mesh_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
-        stable.prefab_asset_uuids = other.prefab_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
+        stable.buffer_asset_uuids = other
+            .buffer_asset_uuids
+            .into_iter()
+            .sorted_by_key(|(id, _uuid)| id.clone())
+            .collect();
+        stable.image_asset_uuids = other
+            .image_asset_uuids
+            .into_iter()
+            .sorted_by_key(|(id, _uuid)| id.clone())
+            .collect();
+        stable.material_asset_uuids = other
+            .material_asset_uuids
+            .into_iter()
+            .sorted_by_key(|(id, _uuid)| id.clone())
+            .collect();
+        stable.material_instance_asset_uuids = other
+            .material_instance_asset_uuids
+            .into_iter()
+            .sorted_by_key(|(id, _uuid)| id.clone())
+            .collect();
+        stable.mesh_asset_uuids = other
+            .mesh_asset_uuids
+            .into_iter()
+            .sorted_by_key(|(id, _uuid)| id.clone())
+            .collect();
+        stable.prefab_asset_uuids = other
+            .prefab_asset_uuids
+            .into_iter()
+            .sorted_by_key(|(id, _uuid)| id.clone())
+            .collect();
         stable
     }
 }
@@ -128,7 +157,8 @@ impl From<GltfImporterStateStable> for GltfImporterStateUnstable {
         unstable.buffer_asset_uuids = other.buffer_asset_uuids.into_iter().collect();
         unstable.image_asset_uuids = other.image_asset_uuids.into_iter().collect();
         unstable.material_asset_uuids = other.material_asset_uuids.into_iter().collect();
-        unstable.material_instance_asset_uuids = other.material_instance_asset_uuids.into_iter().collect();
+        unstable.material_instance_asset_uuids =
+            other.material_instance_asset_uuids.into_iter().collect();
         unstable.mesh_asset_uuids = other.mesh_asset_uuids.into_iter().collect();
         unstable.prefab_asset_uuids = other.prefab_asset_uuids.into_iter().collect();
         unstable
@@ -161,7 +191,7 @@ impl Importer for GltfImporter {
         _options: Self::Options,
         stable_state: &mut Self::State,
     ) -> atelier_assets::importer::Result<ImporterValue> {
-        let mut unstable_state : GltfImporterStateUnstable = stable_state.clone().into();
+        let mut unstable_state: GltfImporterStateUnstable = stable_state.clone().into();
 
         //
         // Load the GLTF file
@@ -471,16 +501,14 @@ impl Importer for GltfImporter {
             });
         }
 
-
         //
         // Scenes
         //
-        let prefabs_to_import =
-            extract_prefabs_to_import(
-                &doc,
-                mesh_index_to_handle.as_slice(),
-                &mut unstable_state.prefab_asset_uuids
-            );
+        let prefabs_to_import = extract_prefabs_to_import(
+            &doc,
+            mesh_index_to_handle.as_slice(),
+            &mut unstable_state.prefab_asset_uuids,
+        );
         for prefab_to_import in prefabs_to_import {
             // Find the UUID associated with this image or create a new one
             let prefab_uuid = AssetUuid(prefab_to_import.asset.prefab.prefab_id());
@@ -792,7 +820,7 @@ fn extract_meshes_to_import(
         let mut all_indices = PushBuffer::new(16384);
 
         let mut mesh_parts: Vec<MeshPartData> = Vec::with_capacity(mesh.primitives().len());
-        let mut bounding_aabb : Option<BoundingAabb> = None;
+        let mut bounding_aabb: Option<BoundingAabb> = None;
 
         //
         // Iterate all mesh parts, building a single vertex and index buffer. Each MeshPart will
@@ -842,7 +870,9 @@ fn extract_meshes_to_import(
 
                             match &mut bounding_aabb {
                                 Some(x) => x.expand(positions[i].into()),
-                                None => bounding_aabb = Some(BoundingAabb::new(positions[i].into()))
+                                None => {
+                                    bounding_aabb = Some(BoundingAabb::new(positions[i].into()))
+                                }
                             }
                         }
 
@@ -1012,22 +1042,21 @@ fn add_nodes_to_world(
     node: &gltf::Node,
     parent_transform: glam::Mat4,
 ) {
-    let local_to_world = parent_transform * glam::Mat4::from_cols_array_2d(&node.transform().matrix());
+    let local_to_world =
+        parent_transform * glam::Mat4::from_cols_array_2d(&node.transform().matrix());
     if let Some(mesh) = node.mesh() {
         //let transform_component = TransformComponentDef::from_matrix(local_to_world);
         let mesh_handle = mesh_index_to_handle[mesh.index()].clone();
         let mesh_component = MeshComponentDef {
-            mesh: Some(mesh_handle.into())
+            mesh: Some(mesh_handle.into()),
         };
 
         // Temporary
         let transform_component = {
-            let m =  node.transform().matrix();
+            let m = node.transform().matrix();
             let m = glam::Mat4::from_cols_array_2d(&m);
             let tformed = parent_transform * m;
-            TransformComponent {
-                transform: tformed
-            }
+            TransformComponent { transform: tformed }
         };
 
         let components = vec![(transform_component, mesh_component)];
@@ -1036,9 +1065,12 @@ fn add_nodes_to_world(
         log::info!("Added mesh {:?}", e);
         if let Some(name) = node.name() {
             log::info!("  name: {}", name);
-            world.entry(e).unwrap().add_component(EditorMetadataComponent {
-                name: name.to_string()
-            });
+            world
+                .entry(e)
+                .unwrap()
+                .add_component(EditorMetadataComponent {
+                    name: name.to_string(),
+                });
         };
     }
 
@@ -1054,25 +1086,25 @@ fn add_nodes_to_world(
                 let light_component = DirectionalLightComponent {
                     color,
                     intensity,
-                    direction: glam::Vec3::new(0.0, 0.0, -1.0).into() // per spec, directional lights point -z
+                    direction: glam::Vec3::new(0.0, 0.0, -1.0).into(), // per spec, directional lights point -z
                 };
 
                 let components = vec![(transform_component, light_component)];
                 world.extend(components)[0]
-            },
+            }
             gltf::khr_lights_punctual::Kind::Point => {
                 let light_component = PointLightComponent {
                     color,
                     intensity,
-                    range
+                    range,
                 };
 
                 let components = vec![(transform_component, light_component)];
                 world.extend(components)[0]
-            },
+            }
             gltf::khr_lights_punctual::Kind::Spot {
                 outer_cone_angle,
-                inner_cone_angle
+                inner_cone_angle,
             } => {
                 //TODO: Support inner angle. Per spec, implementations should use outer if they only
                 // accept a single value
@@ -1094,9 +1126,12 @@ fn add_nodes_to_world(
 
         if let Some(name) = node.name() {
             log::info!("  name: {}", name);
-            world.entry(entity).unwrap().add_component(EditorMetadataComponent {
-                name: name.to_string()
-            });
+            world
+                .entry(entity)
+                .unwrap()
+                .add_component(EditorMetadataComponent {
+                    name: name.to_string(),
+                });
         };
     }
 
@@ -1115,7 +1150,7 @@ fn add_nodes_to_world(
                 proj.ymag();
                 proj.zfar();
                 proj.znear();
-            },
+            }
             Projection::Perspective(proj) => {
                 proj.aspect_ratio();
                 proj.yfov();
@@ -1126,14 +1161,14 @@ fn add_nodes_to_world(
     }
 
     for child in node.children() {
-        add_nodes_to_world(mesh_index_to_handle, world, &child,  local_to_world);
+        add_nodes_to_world(mesh_index_to_handle, world, &child, local_to_world);
     }
 }
 
 fn extract_prefabs_to_import(
     doc: &gltf::Document,
     mesh_index_to_handle: &[Handle<MeshAsset>],
-    prefabs_uuids: &mut FnvHashMap<GltfObjectId, AssetUuid>
+    prefabs_uuids: &mut FnvHashMap<GltfObjectId, AssetUuid>,
 ) -> Vec<PrefabToImport> {
     let mut prefabs_to_import = Vec::with_capacity(doc.scenes().len());
 
@@ -1168,9 +1203,7 @@ fn extract_prefabs_to_import(
 
         prefabs_to_import.push(PrefabToImport {
             id: scene_id,
-            asset: PrefabAsset {
-                prefab
-            },
+            asset: PrefabAsset { prefab },
         });
     }
 

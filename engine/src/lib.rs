@@ -85,9 +85,14 @@ pub fn run(connect_string: String) {
 
     let camera = CameraResource::new(glam::Vec2::new(0.0, 1.0), 10.0);
     let mut viewport = ViewportResource::empty();
-    viewport.set_viewport_size_in_pixels(glam::Vec2::new(window_size.0 as f32, window_size.1 as f32));
+    viewport
+        .set_viewport_size_in_pixels(glam::Vec2::new(window_size.0 as f32, window_size.1 as f32));
     viewport.set_screen_space_view(glam::Mat4::identity());
-    viewport.set_world_space_view(glam::Mat4::identity(), glam::Mat4::identity(), glam::Vec3::zero());
+    viewport.set_world_space_view(
+        glam::Mat4::identity(),
+        glam::Mat4::identity(),
+        glam::Vec3::zero(),
+    );
 
     resources.insert(camera);
     resources.insert(viewport);
@@ -118,7 +123,12 @@ pub fn run(connect_string: String) {
     //EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("2aad7b4c-a323-415a-bea6-ae0f945446b9")).unwrap();
 
     // sponza cleaned up
-    EditorStateResource::open_prefab(&mut world, &resources, asset_uuid!("b6338981-3c25-419e-85f6-8c25ebaeead9")).unwrap();
+    EditorStateResource::open_prefab(
+        &mut world,
+        &resources,
+        asset_uuid!("b6338981-3c25-419e-85f6-8c25ebaeead9"),
+    )
+    .unwrap();
 
     'running: loop {
         let t0 = std::time::Instant::now();
@@ -139,10 +149,7 @@ pub fn run(connect_string: String) {
             }
 
             if !ignore_event {
-                minimum_sdl2::input::handle_sdl2_event(
-                    &event,
-                    input_resource.input_state_mut(),
-                );
+                minimum_sdl2::input::handle_sdl2_event(&event, input_resource.input_state_mut());
 
                 match event {
                     //

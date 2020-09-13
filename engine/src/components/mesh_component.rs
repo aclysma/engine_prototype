@@ -19,11 +19,10 @@ use crate::components::EditableHandle;
 use ncollide3d::shape::Cuboid;
 use minimum::math::na_convert::vec3_glam_to_glm;
 
-
 #[derive(TypeUuid, Serialize, Deserialize, SerdeDiff, Debug, PartialEq, Clone, Default, Inspect)]
 #[uuid = "46b6a84c-f224-48ac-a56d-46971bcaf7f1"]
 pub struct MeshComponentDef {
-    pub mesh: Option<EditableHandle<MeshAsset>>
+    pub mesh: Option<EditableHandle<MeshAsset>>,
 }
 
 legion_prefab::register_component_type!(MeshComponentDef);
@@ -44,7 +43,7 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
         prefab_entity: Entity,
         _transformed_world: &World,
         transformed_entity: Entity,
-        _transformed_component: &MeshComponent
+        _transformed_component: &MeshComponent,
     ) {
         if let Some(mesh) = &self.mesh {
             let asset_resource = resources.get::<AssetResource>().unwrap();
@@ -52,7 +51,12 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                 let bounding_aabb = &mesh.inner.asset.bounding_aabb;
 
                 use ncollide3d::shape::ShapeHandle;
-                if let Some(transform) = prefab_world.entry_ref(prefab_entity).unwrap().get_component::<TransformComponentDef>().ok() {
+                if let Some(transform) = prefab_world
+                    .entry_ref(prefab_entity)
+                    .unwrap()
+                    .get_component::<TransformComponentDef>()
+                    .ok()
+                {
                     let x = bounding_aabb.max.x() - bounding_aabb.min.x();
                     let y = bounding_aabb.max.y() - bounding_aabb.min.y();
                     let z = bounding_aabb.max.z() - bounding_aabb.min.z();
@@ -73,13 +77,18 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
                     let center = transform.position() + (center * transform.scale());
 
                     let shape_handle = ShapeHandle::new(Cuboid::new(
-                        ncollide3d::math::Vector::from(vec3_glam_to_glm(half_extents))
+                        ncollide3d::math::Vector::from(vec3_glam_to_glm(half_extents)),
                     ));
-                    let rotation = nalgebra::Quaternion::new(rotation.w(), rotation.x(), rotation.y(), rotation.z());
+                    let rotation = nalgebra::Quaternion::new(
+                        rotation.w(),
+                        rotation.x(),
+                        rotation.y(),
+                        rotation.z(),
+                    );
                     let rotation = nalgebra::UnitQuaternion::from_quaternion(rotation);
                     collision_world.add(
                         ncollide3d::math::Isometry::from_parts(
-                            nalgebra::Translation::from(vec3_glam_to_glm( center)),
+                            nalgebra::Translation::from(vec3_glam_to_glm(center)),
                             rotation,
                         ),
                         shape_handle,
@@ -100,12 +109,15 @@ impl SpawnFrom<MeshComponentDef> for MeshComponent {
         src_arch: &Archetype,
         src_components: &Components,
         dst: &mut ComponentWriter<Self>,
-        push_fn: fn(&mut ComponentWriter<Self>, Self)
+        push_fn: fn(&mut ComponentWriter<Self>, Self),
     ) {
         // let mesh_render_nodes = resources.get::<MeshRenderNodeSet>().unwrap();
         // let dynamic_visibility_node_set =
         //     resources.get::<DynamicVisibilityNodeSet>().unwrap();
-        let mesh_component_defs = legion_transaction::get_component_slice_from_archetype::<MeshComponentDef>(src_components, src_arch, src_entity_range).unwrap();
+        let mesh_component_defs = legion_transaction::get_component_slice_from_archetype::<
+            MeshComponentDef,
+        >(src_components, src_arch, src_entity_range)
+        .unwrap();
 
         for mesh_component_def in mesh_component_defs {
             // let mesh_render_node_handle = mesh_render_nodes.register_mesh(MeshRenderNode {
@@ -121,8 +133,7 @@ impl SpawnFrom<MeshComponentDef> for MeshComponent {
             let mesh_component = MeshComponent {
                 //mesh_handle: mesh_render_node_handle,
                 //visibility_handle: visibility_node_handle,
-                mesh: mesh_handle
-                //delete_body_tx: physics.delete_body_tx().clone(),
+                mesh: mesh_handle, //delete_body_tx: physics.delete_body_tx().clone(),
             };
 
             (push_fn)(dst, mesh_component)

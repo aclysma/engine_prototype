@@ -24,7 +24,6 @@ pub use directional_light_component::DirectionalLightComponent;
 //     pub position: Vec3,
 // }
 
-
 #[derive(Clone)]
 pub struct SpriteComponent {
     pub sprite_handle: SpriteRenderNodeHandle,

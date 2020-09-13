@@ -149,12 +149,8 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .entry_ref(sprite_render_node.entity)
             .unwrap();
 
-        let transform_component = entity
-            .get_component::<TransformComponent>()
-            .ok();
-        let sprite_component = entity
-            .get_component::<SpriteComponent>()
-            .ok();
+        let transform_component = entity.get_component::<TransformComponent>().ok();
+        let sprite_component = entity.get_component::<SpriteComponent>().ok();
 
         if transform_component.is_none() || sprite_component.is_none() {
             self.extracted_frame_node_sprite_data.push(None);

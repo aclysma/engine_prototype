@@ -2,7 +2,9 @@ use renderer::nodes::{
     RenderView, ViewSubmitNodes, FeatureSubmitNodes, FeatureCommandWriter, RenderFeatureIndex,
     FramePacket, RenderFeature, PrepareJob,
 };
-use crate::features::debug3d::{Debug3dRenderFeature, ExtractedDebugData, Debug3dDrawCall, Debug3dVertex, LineList2D};
+use crate::features::debug3d::{
+    Debug3dRenderFeature, ExtractedDebugData, Debug3dDrawCall, Debug3dVertex, LineList2D,
+};
 use crate::phases::{OpaqueRenderPhase, PreUiRenderPhase};
 use super::write::Debug3dCommandWriter;
 use crate::render_contexts::{RenderJobWriteContext, RenderJobPrepareContext};
@@ -69,20 +71,33 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
         let mut vertex_list_3d_no_depth: Vec<Debug3dVertex> = vec![];
         for line_list in line_lists_3d {
             match line_list.depth_behavior {
-                DebugDraw3DDepthBehavior::Normal => Debug3dPrepareJobImpl::add_line_list_3d(&mut vertex_list_3d, &mut draw_calls_3d, line_list),
-                DebugDraw3DDepthBehavior::NoDepthTest => Debug3dPrepareJobImpl::add_line_list_3d(&mut vertex_list_3d_no_depth, &mut draw_calls_3d_no_depth, line_list)
+                DebugDraw3DDepthBehavior::Normal => Debug3dPrepareJobImpl::add_line_list_3d(
+                    &mut vertex_list_3d,
+                    &mut draw_calls_3d,
+                    line_list,
+                ),
+                DebugDraw3DDepthBehavior::NoDepthTest => Debug3dPrepareJobImpl::add_line_list_3d(
+                    &mut vertex_list_3d_no_depth,
+                    &mut draw_calls_3d_no_depth,
+                    line_list,
+                ),
             }
         }
 
         let vertex_buffer_3d = self.create_vertex_buffer(&mut draw_calls_3d, vertex_list_3d);
-        let vertex_buffer_3d_no_depth = self.create_vertex_buffer(&mut draw_calls_3d_no_depth, vertex_list_3d_no_depth);
+        let vertex_buffer_3d_no_depth =
+            self.create_vertex_buffer(&mut draw_calls_3d_no_depth, vertex_list_3d_no_depth);
 
         let line_lists_2d = &self.extracted_debug_data.line_lists_2d;
         let mut draw_calls_2d = Vec::with_capacity(line_lists_3d.len());
         let mut vertex_list_2d: Vec<Debug3dVertex> = vec![];
 
         for line_list in line_lists_2d {
-            Debug3dPrepareJobImpl::add_line_list_2d(&mut vertex_list_2d, &mut draw_calls_2d, line_list);
+            Debug3dPrepareJobImpl::add_line_list_2d(
+                &mut vertex_list_2d,
+                &mut draw_calls_2d,
+                line_list,
+            );
         }
 
         let vertex_buffer_2d = self.create_vertex_buffer(&mut draw_calls_2d, vertex_list_2d);
@@ -126,7 +141,6 @@ impl PrepareJob<RenderJobPrepareContext, RenderJobWriteContext> for Debug3dPrepa
         Debug3dRenderFeature::feature_index()
     }
 }
-
 
 impl Debug3dPrepareJobImpl {
     fn add_line_list_3d(
@@ -176,7 +190,7 @@ impl Debug3dPrepareJobImpl {
     fn create_vertex_buffer(
         &self,
         draw_calls: &mut Vec<Debug3dDrawCall>,
-        vertex_list: Vec<Debug3dVertex>
+        vertex_list: Vec<Debug3dVertex>,
     ) -> Option<ResourceArc<VkBufferRaw>> {
         // We would probably want to support multiple buffers at some point
         if !draw_calls.is_empty() {
@@ -188,7 +202,8 @@ impl Debug3dPrepareJobImpl {
                 vk::BufferUsageFlags::VERTEX_BUFFER,
                 vk::MemoryPropertyFlags::HOST_VISIBLE | vk::MemoryPropertyFlags::HOST_COHERENT,
                 vertex_buffer_size,
-            ).unwrap();
+            )
+            .unwrap();
 
             vertex_buffer
                 .write_to_host_visible_buffer(vertex_list.as_slice())

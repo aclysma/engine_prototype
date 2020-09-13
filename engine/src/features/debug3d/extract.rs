@@ -1,5 +1,6 @@
 use crate::features::debug3d::{
-    ExtractedDebugData, Debug3dRenderFeature, DebugDraw2DResource, DebugDraw3DResource, Debug3dUniformBufferObject,
+    ExtractedDebugData, Debug3dRenderFeature, DebugDraw2DResource, DebugDraw3DResource,
+    Debug3dUniformBufferObject,
 };
 use crate::render_contexts::{RenderJobExtractContext, RenderJobWriteContext, RenderJobPrepareContext};
 use renderer::nodes::{
@@ -113,16 +114,18 @@ impl ExtractJob<RenderJobExtractContext, RenderJobPrepareContext, RenderJobWrite
 
         let descriptor_set_2d = {
             // https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
-            let vulkan_projection_correction = glam::Mat4::from_scale(glam::Vec3::new(1.0, -1.0, 0.5)) *
-                glam::Mat4::from_translation(glam::Vec3::new(0.0, 0.0, 1.0));
-            let view_proj = vulkan_projection_correction * glam::Mat4::orthographic_rh_gl(
-                0.0,
-                self.extents.width as f32,
-                self.extents.height as f32,
-                0.0,
-                -100.0,
-                100.0,
-            );
+            let vulkan_projection_correction =
+                glam::Mat4::from_scale(glam::Vec3::new(1.0, -1.0, 0.5))
+                    * glam::Mat4::from_translation(glam::Vec3::new(0.0, 0.0, 1.0));
+            let view_proj = vulkan_projection_correction
+                * glam::Mat4::orthographic_rh_gl(
+                    0.0,
+                    self.extents.width as f32,
+                    self.extents.height as f32,
+                    0.0,
+                    -100.0,
+                    100.0,
+                );
             let debug3d_view = Debug3dUniformBufferObject {
                 view_proj: view_proj.to_cols_array_2d(),
             };
@@ -158,7 +161,10 @@ impl ExtractJob<RenderJobExtractContext, RenderJobPrepareContext, RenderJobWrite
             dyn_resource_allocator,
             per_view_descriptor_sets_3d,
             descriptor_set_2d,
-            ExtractedDebugData { line_lists_2d, line_lists_3d },
+            ExtractedDebugData {
+                line_lists_2d,
+                line_lists_3d,
+            },
         ))
     }
 

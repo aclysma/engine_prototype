@@ -4,8 +4,7 @@ use glam::f32::Vec3;
 use crate::features::sprite::{SpriteRenderNodeSet, SpriteRenderNode};
 use renderer::visibility::{DynamicVisibilityNodeSet, DynamicAabbVisibilityNode};
 use crate::components::{
-    SpriteComponent, PointLightComponent, SpotLightComponent,
-    DirectionalLightComponent,
+    SpriteComponent, PointLightComponent, SpotLightComponent, DirectionalLightComponent,
 };
 use renderer::assets::ImageAsset;
 use crate::features::mesh::{MeshRenderNodeSet, MeshRenderNode};
@@ -76,9 +75,8 @@ pub fn populate_test_sprite_entities(
                 image: sprite_image.clone(),
             };
 
-            let entity = world.extend(
-                (0..1).map(|_| (transform_component.clone(), sprite_component.clone())),
-            )[0];
+            let entity = world
+                .extend((0..1).map(|_| (transform_component.clone(), sprite_component.clone())))[0];
 
             SpriteRenderNode {
                 entity, // sprite asset

@@ -41,7 +41,7 @@ pub fn create_debug3d_extract_job(
         pipeline_info_2d,
         debug_material_3d.clone(),
         debug_material_3d_no_depth.clone(),
-        debug_material_2d.clone()
+        debug_material_2d.clone(),
     ))
 }
 

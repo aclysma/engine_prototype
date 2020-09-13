@@ -1,6 +1,7 @@
 use crate::features::mesh::{MeshRenderFeature, ExtractedFrameNodeMeshData, PreparedViewNodeMeshData};
 use renderer::nodes::{
-    RenderFeatureIndex, RenderPhaseIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
+    RenderFeatureIndex, RenderPhaseIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter,
+    RenderView,
 };
 use crate::render_contexts::RenderJobWriteContext;
 use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetArc};
@@ -19,7 +20,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for MeshCommandWriter {
         &self,
         write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
-        _render_phase_index: RenderPhaseIndex
+        _render_phase_index: RenderPhaseIndex,
     ) {
         // println!("render");
         let logical_device = write_context.device_context.device();
@@ -110,7 +111,7 @@ impl FeatureCommandWriter<RenderJobWriteContext> for MeshCommandWriter {
         &self,
         _write_context: &mut RenderJobWriteContext,
         _view: &RenderView,
-        _render_phase_index: RenderPhaseIndex
+        _render_phase_index: RenderPhaseIndex,
     ) {
     }
 

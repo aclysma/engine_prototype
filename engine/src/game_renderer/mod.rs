@@ -61,8 +61,7 @@ impl GameRenderer {
         _window: &dyn Window,
         resources: &Resources,
     ) -> VkResult<Self> {
-        let game_renderer_resources =
-            GameRendererStaticResources::new(resources)?;
+        let game_renderer_resources = GameRendererStaticResources::new(resources)?;
 
         log::info!("all waits complete");
 
@@ -290,8 +289,8 @@ impl GameRenderer {
         let swapchain_surface_info = swapchain_resources.swapchain_surface_info.clone();
 
         // https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
-        let vulkan_projection_correction = glam::Mat4::from_scale(glam::Vec3::new(1.0, -1.0, 0.5)) *
-            glam::Mat4::from_translation(glam::Vec3::new(0.0, 0.0, 1.0));
+        let vulkan_projection_correction = glam::Mat4::from_scale(glam::Vec3::new(1.0, -1.0, 0.5))
+            * glam::Mat4::from_translation(glam::Vec3::new(0.0, 0.0, 1.0));
 
         //
         // View Management
@@ -312,11 +311,7 @@ impl GameRenderer {
             //     3.0
             // );
 
-            let eye = glam::Vec3::new(
-                -8.0,
-                -1.0,
-                3.0
-            );
+            let eye = glam::Vec3::new(-8.0, -1.0, 3.0);
 
             let extents_width = swapchain_surface_info.extents.width;
             let extents_height = swapchain_surface_info.extents.height;
@@ -333,12 +328,8 @@ impl GameRenderer {
                 glam::Vec3::new(0.0, 0.0, 0.0),
                 glam::Vec3::new(0.0, 0.0, 1.0),
             );
-            let proj = vulkan_projection_correction * glam::Mat4::perspective_rh_gl(
-                fov,
-                aspect_ratio,
-                near_clip,
-                far_clip,
-            );
+            let proj = vulkan_projection_correction
+                * glam::Mat4::perspective_rh_gl(fov, aspect_ratio, near_clip, far_clip);
 
             let view_proj = proj * view;
 
@@ -351,8 +342,7 @@ impl GameRenderer {
             );
 
             viewport.set_world_space_view(
-                proj,
-                view,
+                proj, view,
                 eye,
                 // dir,
                 // up,
@@ -368,29 +358,32 @@ impl GameRenderer {
         {
             let multiplier = 600.0 as f32 / swapchain_surface_info.extents.height as f32;
 
-            let half_extents_width = (swapchain_surface_info.extents.width as f32 * multiplier) / 2.0;
-            let half_extents_height = (swapchain_surface_info.extents.height as f32 * multiplier) / 2.0;
+            let half_extents_width =
+                (swapchain_surface_info.extents.width as f32 * multiplier) / 2.0;
+            let half_extents_height =
+                (swapchain_surface_info.extents.height as f32 * multiplier) / 2.0;
 
             // let view = glam::Mat4::look_at_rh(
             //     glam::Vec3::new(0.0, 0.0, -100.0),
             //     glam::Vec3::new(0.0, 0.0, 0.0),
             //     glam::Vec3::new(0.0, 1.0, 0.0)
             // );
-            let proj = vulkan_projection_correction * glam::Mat4::orthographic_rh_gl(
-                -half_extents_width,
-                half_extents_width,
-                -half_extents_height,
-                half_extents_height,
-                -100.0,
-                100.0
-            );
+            let proj = vulkan_projection_correction
+                * glam::Mat4::orthographic_rh_gl(
+                    -half_extents_width,
+                    half_extents_width,
+                    -half_extents_height,
+                    half_extents_height,
+                    -100.0,
+                    100.0,
+                );
 
             viewport.set_screen_space_view(proj /* * view*/);
         }
 
         viewport.set_viewport_size_in_pixels(glam::Vec2::new(
             swapchain_surface_info.extents.width as f32,
-            swapchain_surface_info.extents.height as f32
+            swapchain_surface_info.extents.height as f32,
         ));
 
         //

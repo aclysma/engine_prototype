@@ -9,7 +9,10 @@ use atelier_assets::loader::rpc_loader::RpcLoader;
 
 use minimum::ComponentRegistry;
 use minimum::resources::editor::Keybinds;
-use crate::components::{MeshComponentDef, MeshComponent, SpotLightComponent, PointLightComponent, DirectionalLightComponent};
+use crate::components::{
+    MeshComponentDef, MeshComponent, SpotLightComponent, PointLightComponent,
+    DirectionalLightComponent,
+};
 use legion::Resources;
 use renderer::assets::ResourceManager;
 use crate::game_resource_manager::GameResourceManager;
@@ -17,7 +20,11 @@ use crate::game_resource_manager::GameResourceManager;
 struct AssetResourceUpdateCallbackImpl;
 
 impl AssetResourceUpdateCallback for AssetResourceUpdateCallbackImpl {
-    fn update(&self, resources: &Resources, asset_resource: &mut AssetResource) {
+    fn update(
+        &self,
+        resources: &Resources,
+        asset_resource: &mut AssetResource,
+    ) {
         // Update the asset manager
         asset_resource.do_update();
 
@@ -26,7 +33,11 @@ impl AssetResourceUpdateCallback for AssetResourceUpdateCallbackImpl {
         resource_manager.update_resources().unwrap();
 
         // Update the game resource manager
-        resources.get_mut::<GameResourceManager>().unwrap().update_resources(&* resource_manager).unwrap();
+        resources
+            .get_mut::<GameResourceManager>()
+            .unwrap()
+            .update_resources(&*resource_manager)
+            .unwrap();
     }
 }
 

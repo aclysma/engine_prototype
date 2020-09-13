@@ -1,6 +1,7 @@
 use crate::features::debug3d::{Debug3dRenderFeature, Debug3dDrawCall};
 use renderer::nodes::{
-    RenderFeatureIndex, RenderPhaseIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter, RenderView,
+    RenderFeatureIndex, RenderPhaseIndex, RenderFeature, SubmitNodeId, FeatureCommandWriter,
+    RenderView,
 };
 use crate::render_contexts::RenderJobWriteContext;
 use renderer::vulkan::VkBufferRaw;
@@ -58,7 +59,10 @@ impl FeatureCommandWriter<RenderJobWriteContext> for Debug3dCommandWriter {
                     logical_device.cmd_bind_descriptor_sets(
                         command_buffer,
                         vk::PipelineBindPoint::GRAPHICS,
-                        self.pipeline_info_3d.pipeline_layout.get_raw().pipeline_layout,
+                        self.pipeline_info_3d
+                            .pipeline_layout
+                            .get_raw()
+                            .pipeline_layout,
                         0,
                         &[self.descriptor_set_per_view_3d[view.view_index() as usize].get()],
                         &[],
@@ -95,7 +99,10 @@ impl FeatureCommandWriter<RenderJobWriteContext> for Debug3dCommandWriter {
                     logical_device.cmd_bind_descriptor_sets(
                         command_buffer,
                         vk::PipelineBindPoint::GRAPHICS,
-                        self.pipeline_info_3d_no_depth.pipeline_layout.get_raw().pipeline_layout,
+                        self.pipeline_info_3d_no_depth
+                            .pipeline_layout
+                            .get_raw()
+                            .pipeline_layout,
                         0,
                         &[self.descriptor_set_per_view_3d[view.view_index() as usize].get()],
                         &[],
@@ -132,7 +139,10 @@ impl FeatureCommandWriter<RenderJobWriteContext> for Debug3dCommandWriter {
                     logical_device.cmd_bind_descriptor_sets(
                         command_buffer,
                         vk::PipelineBindPoint::GRAPHICS,
-                        self.pipeline_info_2d.pipeline_layout.get_raw().pipeline_layout,
+                        self.pipeline_info_2d
+                            .pipeline_layout
+                            .get_raw()
+                            .pipeline_layout,
                         0,
                         &[self.descriptor_set_2d.get()],
                         &[],

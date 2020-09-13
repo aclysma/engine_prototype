@@ -1,4 +1,3 @@
-
 use type_uuid::TypeUuid;
 use serde::{Serialize, Deserialize};
 use serde_diff::SerdeDiff;
@@ -34,10 +33,13 @@ impl EditorSelectable for DirectionalLightComponent {
         prefab_world: &World,
         prefab_entity: Entity,
     ) {
-        if let Some(transform) = prefab_world.entry_ref(prefab_entity).unwrap().get_component::<TransformComponent>().ok() {
-            let shape_handle = ShapeHandle::new(Ball::new(
-                0.25
-            ));
+        if let Some(transform) = prefab_world
+            .entry_ref(prefab_entity)
+            .unwrap()
+            .get_component::<TransformComponent>()
+            .ok()
+        {
+            let shape_handle = ShapeHandle::new(Ball::new(0.25));
             let rotation = nalgebra::UnitQuaternion::identity();
             collision_world.add(
                 ncollide3d::math::Isometry::from_parts(

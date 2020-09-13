@@ -9,4 +9,3 @@ pub use pre_ui_render_phase::PreUiRenderPhase;
 
 mod ui_render_phase;
 pub use ui_render_phase::UiRenderPhase;
-
