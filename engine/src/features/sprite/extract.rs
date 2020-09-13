@@ -15,7 +15,7 @@ use atelier_assets::loader::handle::Handle;
 use renderer::assets::resources::DescriptorSetArc;
 use legion::EntityStore;
 use renderer::assets::MaterialAsset;
-use minimum::components::{TransformComponentDef, TransformComponent};
+use minimum::components::{TransformComponent};
 
 // This is almost copy-pasted from glam. I wanted to avoid pulling in the entire library for a
 // single function

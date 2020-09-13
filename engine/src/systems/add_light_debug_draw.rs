@@ -1,11 +1,9 @@
 use legion::*;
-use renderer::assets::ResourceManager;
-use crate::game_resource_manager::GameResourceManager;
 use crate::components::{
     DirectionalLightComponent, PointLightComponent, SpotLightComponent,
 };
 use minimum::resources::{DebugDraw3DResource, DebugDraw3DDepthBehavior};
-use minimum::components::{TransformComponentDef, TransformComponent};
+use minimum::components::{TransformComponent};
 
 pub fn add_light_debug_draw(schedule: &mut legion::systems::Builder) {
     schedule.add_system(SystemBuilder::new("quit_if_escape_pressed")

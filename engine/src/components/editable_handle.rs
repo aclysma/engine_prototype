@@ -96,12 +96,12 @@ impl<T> SerdeDiff for EditableHandle<T> {
 }
 
 impl<T> imgui_inspect::InspectRenderDefault<EditableHandle<T>> for EditableHandle<T> {
-    fn render(data: &[&EditableHandle<T>], label: &'static str, ui: &Ui, args: &InspectArgsDefault) {
-        ui.text(imgui::im_str!("hi {:?}", data[0].handle));
+    fn render(data: &[&EditableHandle<T>], _label: &'static str, ui: &Ui, _args: &InspectArgsDefault) {
+        ui.text(imgui::im_str!("handle test output {:?}", data[0].handle));
     }
 
-    fn render_mut(data: &mut [&mut EditableHandle<T>], label: &'static str, ui: &Ui, args: &InspectArgsDefault) -> bool {
-        ui.text(imgui::im_str!("hi {:?}", data[0].handle));
+    fn render_mut(data: &mut [&mut EditableHandle<T>], _label: &'static str, ui: &Ui, _args: &InspectArgsDefault) -> bool {
+        ui.text(imgui::im_str!("handle test output {:?}", data[0].handle));
         false
     }
 }

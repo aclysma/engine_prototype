@@ -1,5 +1,4 @@
 use minimum::resources::AssetResource;
-use renderer::assets::resources::ResourceManager;
 use atelier_assets::loader::handle::Handle;
 use atelier_assets::core::asset_uuid;
 use atelier_assets::core::AssetUuid;

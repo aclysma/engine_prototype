@@ -25,8 +25,8 @@ use itertools::Itertools;
 use legion::*;
 use minimum::pipeline::PrefabAsset;
 use minimum::components::{TransformComponentDef, EditorMetadataComponent, TransformComponent};
-use crate::components::{MeshComponent, MeshComponentDef, EditableHandle, DirectionalLightComponent, PointLightComponent, SpotLightComponent};
-use legion_prefab::{PrefabBuilder, Prefab};
+use crate::components::{MeshComponentDef, DirectionalLightComponent, PointLightComponent, SpotLightComponent};
+use legion_prefab::{Prefab};
 use gltf::camera::Projection;
 
 #[derive(Debug)]
@@ -101,12 +101,12 @@ pub struct GltfImporterStateStable {
 impl From<GltfImporterStateUnstable> for GltfImporterStateStable {
     fn from(other: GltfImporterStateUnstable) -> Self {
         let mut stable = GltfImporterStateStable::default();
-        stable.buffer_asset_uuids = other.buffer_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
-        stable.image_asset_uuids = other.image_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
-        stable.material_asset_uuids = other.material_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
-        stable.material_instance_asset_uuids = other.material_instance_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
-        stable.mesh_asset_uuids = other.mesh_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
-        stable.prefab_asset_uuids = other.prefab_asset_uuids.into_iter().sorted_by_key(|(id, uuid)| id.clone()).collect();
+        stable.buffer_asset_uuids = other.buffer_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
+        stable.image_asset_uuids = other.image_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
+        stable.material_asset_uuids = other.material_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
+        stable.material_instance_asset_uuids = other.material_instance_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
+        stable.mesh_asset_uuids = other.mesh_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
+        stable.prefab_asset_uuids = other.prefab_asset_uuids.into_iter().sorted_by_key(|(id, _uuid)| id.clone()).collect();
         stable
     }
 }
@@ -485,7 +485,7 @@ impl Importer for GltfImporter {
             // Find the UUID associated with this image or create a new one
             let prefab_uuid = AssetUuid(prefab_to_import.asset.prefab.prefab_id());
 
-            let prefab_handle = SerdeContext::with_active(|loader_info_provider, ref_op_sender| {
+            SerdeContext::with_active(|loader_info_provider, ref_op_sender| {
                 let load_handle = loader_info_provider
                     .get_load_handle(&AssetRef::Uuid(prefab_uuid))
                     .unwrap();
@@ -496,9 +496,6 @@ impl Importer for GltfImporter {
             if let GltfObjectId::Name(name) = &prefab_to_import.id {
                 search_tags.push(("scene_name".to_string(), Some(name.clone())));
             }
-
-            // Push the UUID into the list so that we have an O(1) lookup for image index to UUID
-            //prefab_index_to_handle.push(prefab_handle);
 
             log::debug!("Importing prefab uuid {:?}", prefab_uuid);
 
@@ -1033,7 +1030,7 @@ fn add_nodes_to_world(
             }
         };
 
-        let mut components = vec![(transform_component, mesh_component)];
+        let components = vec![(transform_component, mesh_component)];
         let e = world.extend(components)[0];
 
         log::info!("Added mesh {:?}", e);
@@ -1060,7 +1057,7 @@ fn add_nodes_to_world(
                     direction: glam::Vec3::new(0.0, 0.0, -1.0).into() // per spec, directional lights point -z
                 };
 
-                let mut components = vec![(transform_component, light_component)];
+                let components = vec![(transform_component, light_component)];
                 world.extend(components)[0]
             },
             gltf::khr_lights_punctual::Kind::Point => {
@@ -1070,15 +1067,17 @@ fn add_nodes_to_world(
                     range
                 };
 
-                let mut components = vec![(transform_component, light_component)];
+                let components = vec![(transform_component, light_component)];
                 world.extend(components)[0]
             },
             gltf::khr_lights_punctual::Kind::Spot {
-                inner_cone_angle,
-                outer_cone_angle
+                outer_cone_angle,
+                inner_cone_angle
             } => {
                 //TODO: Support inner angle. Per spec, implementations should use outer if they only
                 // accept a single value
+                std::mem::forget(inner_cone_angle);
+
                 let light_component = SpotLightComponent {
                     color,
                     intensity,
@@ -1087,7 +1086,7 @@ fn add_nodes_to_world(
                     spotlight_half_angle: outer_cone_angle,
                 };
 
-                let mut components = vec![(transform_component, light_component)];
+                let components = vec![(transform_component, light_component)];
                 world.extend(components)[0]
             }
         };

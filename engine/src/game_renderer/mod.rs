@@ -3,7 +3,7 @@ use renderer::vulkan::{VkSurface, Window, VkDeviceContext, VkContext, FrameInFli
 use ash::prelude::VkResult;
 use std::mem::ManuallyDrop;
 use ash::vk;
-use minimum::resources::{AssetResource, TimeResource, ViewportResource};
+use minimum::resources::{ViewportResource};
 use renderer::assets::resources::{ResourceManager, ResourceArc, ImageViewResource};
 use crate::features::debug3d::create_debug3d_extract_job;
 use crate::features::sprite::{SpriteRenderNodeSet, create_sprite_extract_job};
@@ -65,9 +65,6 @@ impl GameRenderer {
             GameRendererStaticResources::new(resources)?;
 
         log::info!("all waits complete");
-
-        let mut asset_resource_fetch = resources.get_mut::<AssetResource>().unwrap();
-        let asset_resource = &mut *asset_resource_fetch;
 
         let mut resource_manager_fetch = resources.get_mut::<ResourceManager>().unwrap();
         let mut resource_manager = &mut *resource_manager_fetch;
@@ -266,8 +263,8 @@ impl GameRenderer {
         // Fetch resources
         //
 
-        let time_state_fetch = resources.get::<TimeResource>().unwrap();
-        let time_resource = &*time_state_fetch;
+        // let time_state_fetch = resources.get::<TimeResource>().unwrap();
+        // let time_resource = &*time_state_fetch;
 
         let static_visibility_node_set_fetch = resources.get::<StaticVisibilityNodeSet>().unwrap();
         let static_visibility_node_set = &*static_visibility_node_set_fetch;
@@ -328,8 +325,8 @@ impl GameRenderer {
             let near_clip = 0.1;
             let far_clip = 25.0;
             let fov = std::f32::consts::FRAC_PI_4;
-            let up = glam::Vec3::new(0.0, 0.0, 1.0);
-            let dir = (glam::Vec3::new(0.0, 0.0, 0.0) - eye).normalize();
+            //let up = glam::Vec3::new(0.0, 0.0, 1.0);
+            //let dir = (glam::Vec3::new(0.0, 0.0, 0.0) - eye).normalize();
 
             let view = glam::Mat4::look_at_rh(
                 eye,
@@ -416,7 +413,7 @@ impl GameRenderer {
 
         let sprite_render_nodes = resources.get::<SpriteRenderNodeSet>().unwrap();
         let mesh_render_nodes = resources.get::<MeshRenderNodeSet>().unwrap();
-        let mut all_render_nodes = AllRenderNodes::new();
+        let mut all_render_nodes = AllRenderNodes::default();
         all_render_nodes.add_render_nodes(&*sprite_render_nodes);
         all_render_nodes.add_render_nodes(&*mesh_render_nodes);
 

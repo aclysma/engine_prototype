@@ -83,12 +83,12 @@ pub fn rendering_init(
     resources.insert(DebugDraw2DResource::new());
     resources.insert(DebugDraw3DResource::new());
 
-    let mut msaa_level = MsaaLevel::Sample4;
+    #[cfg(not(target_os = "ios"))]
+    let msaa_level = MsaaLevel::Sample4;
     #[cfg(target_os = "ios")]
-    {
-        msaa_level = MsaaLevel::Sample1;
-    }
+    let msaa_level = MsaaLevel::Sample1;
 
+    #[allow(unused_mut)]
     let mut context = VkContextBuilder::new()
         .use_vulkan_debug_layer(false)
         .msaa_level_priority(vec![msaa_level])

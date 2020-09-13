@@ -3,7 +3,7 @@ use renderer::nodes::{
     FramePacket, RenderFeature, PrepareJob,
 };
 use crate::features::debug3d::{Debug3dRenderFeature, ExtractedDebugData, Debug3dDrawCall, Debug3dVertex, LineList2D};
-use crate::phases::{OpaqueRenderPhase, UiRenderPhase, PreUiRenderPhase};
+use crate::phases::{OpaqueRenderPhase, PreUiRenderPhase};
 use super::write::Debug3dCommandWriter;
 use crate::render_contexts::{RenderJobWriteContext, RenderJobPrepareContext};
 use renderer::vulkan::{VkBuffer, VkDeviceContext};
@@ -176,7 +176,7 @@ impl Debug3dPrepareJobImpl {
     fn create_vertex_buffer(
         &self,
         draw_calls: &mut Vec<Debug3dDrawCall>,
-        mut vertex_list: Vec<Debug3dVertex>
+        vertex_list: Vec<Debug3dVertex>
     ) -> Option<ResourceArc<VkBufferRaw>> {
         // We would probably want to support multiple buffers at some point
         if !draw_calls.is_empty() {

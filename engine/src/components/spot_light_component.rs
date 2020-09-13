@@ -6,7 +6,7 @@ use imgui_inspect_derive::Inspect;
 use minimum::math::Vec3;
 use legion::{World, Entity, Resources, EntityStore};
 use minimum::resources::editor::OpenedPrefabState;
-use minimum::components::{TransformComponentDef, TransformComponent};
+use minimum::components::{TransformComponent};
 use ncollide3d::shape::{ShapeHandle, Ball};
 use ncollide3d::world::CollisionWorld;
 use ncollide3d::pipeline::{GeometricQueryType, CollisionGroups};
@@ -31,8 +31,8 @@ impl EditorSelectable for SpotLightComponent {
     fn create_editor_selection_world(
         &self,
         collision_world: &mut CollisionWorld<f32, Entity>,
-        resources: &Resources,
-        opened_prefab: &OpenedPrefabState,
+        _resources: &Resources,
+        _opened_prefab: &OpenedPrefabState,
         prefab_world: &World,
         prefab_entity: Entity,
     ) {

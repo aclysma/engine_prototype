@@ -1,18 +1,10 @@
-use crate::features::mesh::{MeshRenderNodeHandle, MeshRenderNodeSet, MeshRenderNode};
-use renderer::visibility::DynamicAabbVisibilityNodeHandle;
 use atelier_assets::loader::handle::Handle;
 use crate::assets::gltf::MeshAsset;
-use glam::f32::Vec3;
-use crate::features::sprite::SpriteRenderNodeHandle;
-use renderer::assets::ImageAsset;
 use type_uuid::*;
-use serde::{Serialize, Deserialize, Serializer, Deserializer};
-use serde_diff::{SerdeDiff, DiffContext, ApplyContext};
+use serde::{Serialize, Deserialize};
+use serde_diff::{SerdeDiff};
 use minimum::editor::EditorSelectableTransformed;
-use legion::storage::{ComponentStorage, Archetype, Components, ComponentWriter};
-use legion::storage::ComponentIndex;
-use renderer::visibility::DynamicVisibilityNodeSet;
-use renderer::visibility::DynamicAabbVisibilityNode;
+use legion::storage::{Archetype, Components, ComponentWriter};
 
 use imgui_inspect_derive::Inspect;
 use legion::{Entity, Resources, World, EntityStore};
@@ -21,10 +13,7 @@ use minimum::components::{TransformComponentDef};
 use ncollide3d::pipeline::{CollisionGroups, GeometricQueryType};
 use ncollide3d::world::CollisionWorld;
 use minimum::resources::AssetResource;
-use std::marker::PhantomData;
-use imgui::Ui;
-use imgui_inspect::{InspectArgsDefault, InspectArgsStruct};
-use std::ops::{Deref, DerefMut, Range};
+use std::ops::{Range};
 use legion_prefab::SpawnFrom;
 use crate::components::EditableHandle;
 use ncollide3d::shape::Cuboid;
@@ -50,21 +39,19 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
         &self,
         collision_world: &mut CollisionWorld<f32, Entity>,
         resources: &Resources,
-        opened_prefab: &OpenedPrefabState,
+        _opened_prefab: &OpenedPrefabState,
         prefab_world: &World,
         prefab_entity: Entity,
-        transformed_world: &World,
+        _transformed_world: &World,
         transformed_entity: Entity,
-        transformed_component: &MeshComponent
+        _transformed_component: &MeshComponent
     ) {
         if let Some(mesh) = &self.mesh {
             let asset_resource = resources.get::<AssetResource>().unwrap();
             if let Some(mesh) = mesh.asset(asset_resource.storage()) {
-                let bounding_sphere = &mesh.inner.asset.bounding_sphere;
                 let bounding_aabb = &mesh.inner.asset.bounding_aabb;
 
                 use ncollide3d::shape::ShapeHandle;
-                use ncollide3d::shape::Ball;
                 if let Some(transform) = prefab_world.entry_ref(prefab_entity).unwrap().get_component::<TransformComponentDef>().ok() {
                     let x = bounding_aabb.max.x() - bounding_aabb.min.x();
                     let y = bounding_aabb.max.y() - bounding_aabb.min.y();
@@ -108,16 +95,16 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
 
 impl SpawnFrom<MeshComponentDef> for MeshComponent {
     fn spawn_from(
-        resources: &Resources,
+        _resources: &Resources,
         src_entity_range: Range<usize>,
         src_arch: &Archetype,
         src_components: &Components,
         dst: &mut ComponentWriter<Self>,
         push_fn: fn(&mut ComponentWriter<Self>, Self)
     ) {
-        let mut mesh_render_nodes = resources.get_mut::<MeshRenderNodeSet>().unwrap();
-        let mut dynamic_visibility_node_set =
-            resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
+        // let mesh_render_nodes = resources.get::<MeshRenderNodeSet>().unwrap();
+        // let dynamic_visibility_node_set =
+        //     resources.get::<DynamicVisibilityNodeSet>().unwrap();
         let mesh_component_defs = legion_transaction::get_component_slice_from_archetype::<MeshComponentDef>(src_components, src_arch, src_entity_range).unwrap();
 
         for mesh_component_def in mesh_component_defs {

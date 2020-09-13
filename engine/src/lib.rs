@@ -27,17 +27,13 @@ mod registration;
 use minimum_sdl2::imgui::Sdl2ImguiManager;
 
 use renderer_shell_vulkan_sdl2::Sdl2Window;
-use crate::components::{
-    PointLightComponent, SpotLightComponent, DirectionalLightComponent,
-};
 
 use crate::game_renderer::GameRenderer;
 use minimum::resources::editor::{
-    EditorInspectRegistryResource, EditorMode, EditorStateResource, EditorSelectionResource,
+    EditorInspectRegistryResource, EditorStateResource, EditorSelectionResource,
     EditorSettingsResource, EditorDraw3DResource,
 };
-use crate::systems::{ScheduleCriteria, ScheduleManager};
-use fnv::FnvHashMap;
+use crate::systems::{ScheduleManager};
 use atelier_assets::core as atelier_core;
 use atelier_assets::core::asset_uuid;
 use atelier_assets::loader::rpc_loader::RpcLoader;
@@ -143,11 +139,9 @@ pub fn run(connect_string: String) {
             }
 
             if !ignore_event {
-                let viewport = resources.get_mut::<ViewportResource>().unwrap();
                 minimum_sdl2::input::handle_sdl2_event(
                     &event,
                     input_resource.input_state_mut(),
-                    &*viewport,
                 );
 
                 match event {

@@ -6,7 +6,6 @@ use atelier_assets::loader::LoaderInfoProvider;
 use atelier_assets::loader::handle::SerdeContext;
 use atelier_assets::loader::handle::RefOp;
 use type_uuid::TypeUuid;
-use std::sync::Arc;
 use minimum::{DynAssetLoader, UpdateAssetResult};
 use crossbeam_channel::Sender;
 use std::error::Error;

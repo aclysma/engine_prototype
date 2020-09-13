@@ -244,9 +244,9 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             }
 
             let light_from = transform.position();
-            let light_from_vs = (view.view_matrix().transform_point3(light_from));
+            let light_from_vs = view.view_matrix().transform_point3(light_from);
             let light_to = transform.position() + *light.direction;
-            let light_to_vs = (view.view_matrix().transform_point3(light_to));
+            let light_to_vs = view.view_matrix().transform_point3(light_to);
 
             let light_direction = (light_to - light_from).normalize();
             let light_direction_vs = (light_to_vs - light_from_vs).normalize();

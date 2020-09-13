@@ -20,7 +20,6 @@
 
 
 use legion::SystemBuilder;
-use legion::Schedule;
 use minimum::resources::{ImguiResource, InputResource, ViewportResource, DebugDraw3DDepthBehavior};
 use crate::features::debug3d::DebugDraw3DResource;
 
@@ -32,7 +31,7 @@ pub fn imgui_draw_mouse_coordinates(schedule: &mut legion::systems::Builder) {
         .write_resource::<DebugDraw3DResource>()
         .build(
             |_,
-            world,
+            _world,
             (imgui_resource, input_resource, viewport_resource, debug_draw_resource),
             _| {
                 imgui_resource.with_ui(|ui| {

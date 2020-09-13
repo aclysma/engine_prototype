@@ -132,7 +132,7 @@ pub struct GltfMaterialAsset {
 }
 
 /// Vertex format for vertices sent to the GPU
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug)]
 #[repr(packed(1))]
 pub struct MeshVertex {
     pub position: [f32; 3],

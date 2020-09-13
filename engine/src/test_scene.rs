@@ -1,4 +1,4 @@
-use legion::{Resources, World, EntityStore};
+use legion::{Resources, World};
 use minimum::resources::AssetResource;
 use glam::f32::Vec3;
 use crate::features::sprite::{SpriteRenderNodeSet, SpriteRenderNode};
@@ -123,7 +123,7 @@ pub fn populate_test_mesh_entities(
 
             // User calls functions to register visibility objects
             // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
-            let visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
+            let _visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
 
             let transform_component = TransformComponent::from_position(position);
             let mesh_component = MeshComponent {
