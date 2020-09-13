@@ -20,6 +20,7 @@ use renderer::assets::resources::{
     PipelineSwapchainInfo, DescriptorSetArc, DescriptorSetAllocatorRef, ResourceArc,
 };
 use renderer::assets::MaterialAsset;
+use crate::assets::gltf::MeshAsset;
 
 // Represents the data uploaded to the GPU to represent a single point light
 #[derive(Default, Copy, Clone)]
@@ -93,7 +94,8 @@ pub fn create_mesh_extract_job(
 // This is boiler-platish
 //
 pub struct MeshRenderNode {
-    pub entity: Entity, // texture
+    pub mesh: Option<Handle<MeshAsset>>,
+    pub transform: glam::Mat4,
 }
 
 #[derive(Copy, Clone)]
@@ -121,21 +123,18 @@ impl MeshRenderNodeSet {
         MeshRenderNodeHandle(self.meshes.allocate(node))
     }
 
-    pub fn register_mesh_with_handle<F: FnMut(MeshRenderNodeHandle) -> MeshRenderNode>(
-        &mut self,
-        mut f: F,
-    ) -> MeshRenderNodeHandle {
-        MeshRenderNodeHandle(
-            self.meshes
-                .allocate_with_key(|handle| (f)(MeshRenderNodeHandle(handle))),
-        )
-    }
-
     pub fn unregister_mesh(
         &mut self,
         handle: MeshRenderNodeHandle,
     ) {
         self.meshes.free(handle.0);
+    }
+
+    pub fn get_mut(
+        &mut self,
+        handle: MeshRenderNodeHandle,
+    ) -> Option<&mut MeshRenderNode> {
+        self.meshes.get_mut(handle.0)
     }
 }
 

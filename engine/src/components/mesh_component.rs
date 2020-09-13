@@ -5,6 +5,7 @@ use serde::{Serialize, Deserialize};
 use serde_diff::{SerdeDiff};
 use minimum::editor::EditorSelectableTransformed;
 use legion::storage::{Archetype, Components, ComponentWriter};
+use renderer::visibility::DynamicAabbVisibilityNodeHandle;
 
 use imgui_inspect_derive::Inspect;
 use legion::{Entity, Resources, World, EntityStore};
@@ -18,6 +19,7 @@ use legion_prefab::SpawnFrom;
 use crate::components::EditableHandle;
 use ncollide3d::shape::Cuboid;
 use minimum::math::na_convert::vec3_glam_to_glm;
+use crate::features::mesh::MeshRenderNodeHandle;
 
 #[derive(TypeUuid, Serialize, Deserialize, SerdeDiff, Debug, PartialEq, Clone, Default, Inspect)]
 #[uuid = "46b6a84c-f224-48ac-a56d-46971bcaf7f1"]
@@ -28,8 +30,8 @@ pub struct MeshComponentDef {
 legion_prefab::register_component_type!(MeshComponentDef);
 
 pub struct MeshComponent {
-    //pub mesh_handle: MeshRenderNodeHandle,
-    //pub visibility_handle: DynamicAabbVisibilityNodeHandle,
+    pub render_node: Option<MeshRenderNodeHandle>,
+    pub visibility_node: Option<DynamicAabbVisibilityNodeHandle>,
     pub mesh: Option<Handle<MeshAsset>>,
 }
 
@@ -132,6 +134,8 @@ impl SpawnFrom<MeshComponentDef> for MeshComponent {
             let mesh_component = MeshComponent {
                 //mesh_handle: mesh_render_node_handle,
                 //visibility_handle: visibility_node_handle,
+                render_node: None,
+                visibility_node: None,
                 mesh: mesh_handle, //delete_body_tx: physics.delete_body_tx().clone(),
             };
 

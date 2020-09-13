@@ -113,29 +113,29 @@ pub fn populate_test_mesh_entities(
         //   This resolves a circular dependency where the component needs the render node handle and the
         //   render node needs the entity.
         // - ALTERNATIVE: Could create an empty entity, create the components, and then add all of them
-        mesh_render_nodes.register_mesh_with_handle(|mesh_handle| {
-            let aabb_info = DynamicAabbVisibilityNode {
-                handle: mesh_handle.into(),
-                // aabb bounds
-            };
-
-            // User calls functions to register visibility objects
-            // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
-            let _visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
-
-            let transform_component = TransformComponent::from_position(position);
-            let mesh_component = MeshComponent {
-                // mesh_handle,
-                // visibility_handle,
-                mesh: Some(mesh.clone()),
-            };
-
-            let entity = world.extend(vec![(transform_component, mesh_component)])[0];
-
-            MeshRenderNode {
-                entity, // sprite asset
-            }
-        });
+        // mesh_render_nodes.register_mesh_with_handle(|mesh_handle| {
+        //     let aabb_info = DynamicAabbVisibilityNode {
+        //         handle: mesh_handle.into(),
+        //         // aabb bounds
+        //     };
+        //
+        //     // User calls functions to register visibility objects
+        //     // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
+        //     let _visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
+        //
+        //     let transform_component = TransformComponent::from_position(position);
+        //     let mesh_component = MeshComponent {
+        //         // mesh_handle,
+        //         // visibility_handle,
+        //         mesh: Some(mesh.clone()),
+        //     };
+        //
+        //     let entity = world.extend(vec![(transform_component, mesh_component)])[0];
+        //
+        //     MeshRenderNode {
+        //         entity, // sprite asset
+        //     }
+        // });
     }
 }
 

@@ -187,7 +187,7 @@ pub fn run(connect_string: String) {
             let window = Sdl2Window::new(&sdl2_systems.window);
             let game_renderer = resources.get::<GameRenderer>().unwrap();
             game_renderer
-                .begin_render(&resources, &world, &window)
+                .begin_render(&resources, &mut world, &window)
                 .unwrap();
         }
 
