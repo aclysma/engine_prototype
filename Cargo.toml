@@ -43,7 +43,7 @@ minimum-sdl2 = { path = "minimum/contrib/minimum-sdl2" }
 renderer = { path = "renderer/renderer" }
 renderer-shell-vulkan-sdl2 = { path = "renderer/renderer-shell-vulkan-sdl2" }
 
-[patch."https://github.com/aclysma/prefab"]
-legion-prefab = { path = "../prefab/legion-prefab" }
-legion-transaction = { path = "../prefab/legion-transaction" }
-prefab-format = { path = "../prefab/prefab-format" }
+#[patch."https://github.com/aclysma/prefab"]
+#legion-prefab = { path = "../prefab/legion-prefab" }
+#legion-transaction = { path = "../prefab/legion-transaction" }
+#prefab-format = { path = "../prefab/prefab-format" }
