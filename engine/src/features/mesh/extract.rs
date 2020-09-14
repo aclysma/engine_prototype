@@ -18,7 +18,6 @@ use crate::components::MeshComponent;
 use crate::game_resource_manager::GameResourceManager;
 use renderer::assets::MaterialAsset;
 use minimum::components::{TransformComponent};
-use legion::*;
 
 pub struct MeshExtractJobImpl {
     descriptor_set_allocator: DescriptorSetAllocatorRef,
@@ -51,7 +50,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 {
     fn extract_begin(
         &mut self,
-        _extract_context: &RenderJobExtractContext,
+        extract_context: &RenderJobExtractContext,
         frame_packet: &FramePacket,
         views: &[&RenderView],
     ) {
@@ -63,6 +62,26 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             self.extracted_view_node_mesh_data.push(Vec::with_capacity(
                 frame_packet.view_node_count(view, self.feature_index()) as usize,
             ));
+        }
+
+        {
+            // Update the mesh render nodes? We can split mesh/visibility and run visibility earlier
+            let mut mesh_render_nodes = extract_context
+                .resources
+                .get_mut::<MeshRenderNodeSet>()
+                .unwrap();
+            let mut query = <(Read<TransformComponent>, Read<MeshComponent>)>::query();
+
+            for (transform_component, mesh_component) in query.iter(extract_context.world) {
+                let render_node = mesh_render_nodes
+                    .get_mut(&mesh_component.render_node)
+                    .unwrap();
+                render_node.mesh = mesh_component.mesh.clone();
+                render_node.transform = transform_component.transform;
+
+                // Visibility node creation currently happens after render node creation because visibility node needs a render node handle
+                // Update dynamic visibility node
+            }
         }
     }
 
@@ -79,7 +98,7 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .resources
             .get::<MeshRenderNodeSet>()
             .unwrap();
-        let mesh_render_node = mesh_nodes.meshes.get(render_node_handle).unwrap();
+        let mesh_render_node = mesh_nodes.meshes.get_raw(render_node_handle).unwrap();
         let game_resource_manager = extract_context
             .resources
             .get::<GameResourceManager>()

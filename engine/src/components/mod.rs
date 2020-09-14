@@ -26,8 +26,8 @@ pub use directional_light_component::DirectionalLightComponent;
 
 #[derive(Clone)]
 pub struct SpriteComponent {
-    pub sprite_handle: SpriteRenderNodeHandle,
-    pub visibility_handle: DynamicAabbVisibilityNodeHandle,
+    pub render_node: SpriteRenderNodeHandle,
+    pub visibility_node: DynamicAabbVisibilityNodeHandle,
     pub alpha: f32,
     pub image: Handle<ImageAsset>,
 }

@@ -5,7 +5,9 @@ use serde::{Serialize, Deserialize};
 use serde_diff::{SerdeDiff};
 use minimum::editor::EditorSelectableTransformed;
 use legion::storage::{Archetype, Components, ComponentWriter};
-use renderer::visibility::DynamicAabbVisibilityNodeHandle;
+use renderer::visibility::{
+    DynamicVisibilityNodeSet, DynamicAabbVisibilityNodeHandle, DynamicAabbVisibilityNode,
+};
 
 use imgui_inspect_derive::Inspect;
 use legion::{Entity, Resources, World, EntityStore};
@@ -19,7 +21,7 @@ use legion_prefab::SpawnFrom;
 use crate::components::EditableHandle;
 use ncollide3d::shape::Cuboid;
 use minimum::math::na_convert::vec3_glam_to_glm;
-use crate::features::mesh::MeshRenderNodeHandle;
+use crate::features::mesh::{MeshRenderNodeHandle, MeshRenderNodeSet, MeshRenderNode};
 
 #[derive(TypeUuid, Serialize, Deserialize, SerdeDiff, Debug, PartialEq, Clone, Default, Inspect)]
 #[uuid = "46b6a84c-f224-48ac-a56d-46971bcaf7f1"]
@@ -30,8 +32,8 @@ pub struct MeshComponentDef {
 legion_prefab::register_component_type!(MeshComponentDef);
 
 pub struct MeshComponent {
-    pub render_node: Option<MeshRenderNodeHandle>,
-    pub visibility_node: Option<DynamicAabbVisibilityNodeHandle>,
+    pub render_node: MeshRenderNodeHandle,
+    pub visibility_node: DynamicAabbVisibilityNodeHandle,
     pub mesh: Option<Handle<MeshAsset>>,
 }
 
@@ -105,43 +107,52 @@ impl EditorSelectableTransformed<MeshComponent> for MeshComponentDef {
 
 impl SpawnFrom<MeshComponentDef> for MeshComponent {
     fn spawn_from(
-        _resources: &Resources,
+        resources: &Resources,
         src_entity_range: Range<usize>,
         src_arch: &Archetype,
         src_components: &Components,
         dst: &mut ComponentWriter<Self>,
         push_fn: fn(&mut ComponentWriter<Self>, Self),
     ) {
-        // let mesh_render_nodes = resources.get::<MeshRenderNodeSet>().unwrap();
-        // let dynamic_visibility_node_set =
-        //     resources.get::<DynamicVisibilityNodeSet>().unwrap();
+        let mut mesh_render_nodes = resources.get_mut::<MeshRenderNodeSet>().unwrap();
+        let mut dynamic_visibility_node_set =
+            resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
+
         let mesh_component_defs = legion_transaction::get_component_slice_from_archetype::<
             MeshComponentDef,
-        >(src_components, src_arch, src_entity_range)
+        >(src_components, src_arch, src_entity_range.clone())
         .unwrap();
 
-        for mesh_component_def in mesh_component_defs {
-            // let mesh_render_node_handle = mesh_render_nodes.register_mesh(MeshRenderNode {
-            //     entity: *dst_entity
-            // });
-            //
-            // let visibility_node_handle = dynamic_visibility_node_set.register_dynamic_aabb(DynamicAabbVisibilityNode {
-            //     handle: mesh_render_node_handle.into(),
-            //     // aabb bounds
-            // });
+        let transform_component_defs = legion_transaction::iter_component_slice_from_archetype::<
+            TransformComponentDef,
+        >(src_components, src_arch, src_entity_range);
 
+        for (transform_component_def, mesh_component_def) in
+            izip!(transform_component_defs, mesh_component_defs)
+        {
             let mesh_handle = mesh_component_def.mesh.as_ref().map(|x| x.handle.clone());
+
+            let transform = transform_component_def
+                .map(|transform| transform.transform())
+                .unwrap_or_else(|| glam::Mat4::identity());
+
+            let mesh_render_node_handle = mesh_render_nodes.register_mesh(MeshRenderNode {
+                mesh: mesh_handle.clone(),
+                transform,
+            });
+
+            let visibility_node_handle =
+                dynamic_visibility_node_set.register_dynamic_aabb(DynamicAabbVisibilityNode {
+                    handle: mesh_render_node_handle.as_raw_generic_handle(),
+                });
+
             let mesh_component = MeshComponent {
-                //mesh_handle: mesh_render_node_handle,
-                //visibility_handle: visibility_node_handle,
-                render_node: None,
-                visibility_node: None,
-                mesh: mesh_handle, //delete_body_tx: physics.delete_body_tx().clone(),
+                render_node: mesh_render_node_handle,
+                visibility_node: visibility_node_handle,
+                mesh: mesh_handle,
             };
 
             (push_fn)(dst, mesh_component)
-
-            //*into = std::mem::MaybeUninit::new()
         }
     }
 }

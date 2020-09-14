@@ -7,9 +7,7 @@ use minimum::resources::{ViewportResource};
 use renderer::assets::resources::{ResourceManager, ResourceArc, ImageViewResource};
 use crate::features::debug3d::create_debug3d_extract_job;
 use crate::features::sprite::{SpriteRenderNodeSet, create_sprite_extract_job};
-use renderer::visibility::{
-    StaticVisibilityNodeSet, DynamicVisibilityNodeSet, DynamicAabbVisibilityNode,
-};
+use renderer::visibility::{StaticVisibilityNodeSet, DynamicVisibilityNodeSet};
 use renderer::nodes::{
     RenderPhaseMaskBuilder, RenderPhaseMask, RenderRegistry, RenderViewSet, AllRenderNodes,
     FramePacketBuilder, ExtractJobSet,
@@ -18,7 +16,7 @@ use crate::phases::{OpaqueRenderPhase, UiRenderPhase, PreUiRenderPhase};
 use crate::phases::TransparentRenderPhase;
 use legion::*;
 use crate::render_contexts::{RenderJobExtractContext};
-use crate::features::mesh::{create_mesh_extract_job, MeshRenderNodeSet, MeshRenderNode};
+use crate::features::mesh::{create_mesh_extract_job, MeshRenderNodeSet};
 use std::sync::{Arc, Mutex};
 
 mod static_resources;
@@ -38,8 +36,6 @@ mod swapchain_handling;
 pub use swapchain_handling::SwapchainLifetimeListener;
 use ash::version::DeviceV1_0;
 use crate::features::imgui::create_imgui_extract_job;
-use minimum::components::TransformComponent;
-use crate::components::MeshComponent;
 
 pub struct GameRendererInner {
     #[cfg(feature = "use_imgui")]
@@ -269,12 +265,13 @@ impl GameRenderer {
         // let time_state_fetch = resources.get::<TimeResource>().unwrap();
         // let time_resource = &*time_state_fetch;
 
-        let static_visibility_node_set_fetch = resources.get::<StaticVisibilityNodeSet>().unwrap();
-        let static_visibility_node_set = &*static_visibility_node_set_fetch;
+        let mut static_visibility_node_set_fetch =
+            resources.get_mut::<StaticVisibilityNodeSet>().unwrap();
+        let static_visibility_node_set = &mut *static_visibility_node_set_fetch;
 
         let mut dynamic_visibility_node_set_fetch =
             resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
-        let mut dynamic_visibility_node_set = &mut *dynamic_visibility_node_set_fetch;
+        let dynamic_visibility_node_set = &mut *dynamic_visibility_node_set_fetch;
 
         let mut viewport = resources.get_mut::<ViewportResource>().unwrap();
 
@@ -390,40 +387,7 @@ impl GameRenderer {
             swapchain_surface_info.extents.height as f32,
         ));
 
-        {
-            // Update the mesh render nodes? We can split mesh/visibility and run visibility earlier
-            let mut mesh_render_nodes = resources.get_mut::<MeshRenderNodeSet>().unwrap();
-            let mut query = <(Read<TransformComponent>, Write<MeshComponent>)>::query();
-
-            for (entity, (transform_component, mesh_component)) in query.iter_mut(world).enumerate()
-            {
-                if let Some(render_node_handle) = mesh_component.render_node {
-                    let render_node = mesh_render_nodes.get_mut(render_node_handle).unwrap();
-                    render_node.mesh = mesh_component.mesh.clone();
-                    render_node.transform = transform_component.transform;
-                } else {
-                    let mesh_render_node_handle = mesh_render_nodes.register_mesh(MeshRenderNode {
-                        mesh: mesh_component.mesh.clone(),
-                        transform: transform_component.transform,
-                    });
-
-                    mesh_component.render_node = Some(mesh_render_node_handle);
-                }
-
-                // Visibility node creation currently happens after render node creation because visibility node needs a render node handle
-                if let Some(visibility_node_handle) = mesh_component.visibility_node {
-                    // do nothing for now
-                } else {
-                    let visibility_node_handle = dynamic_visibility_node_set.register_dynamic_aabb(
-                        DynamicAabbVisibilityNode {
-                            handle: mesh_component.render_node.unwrap().into(),
-                        },
-                    );
-
-                    mesh_component.visibility_node = Some(visibility_node_handle);
-                }
-            }
-        }
+        //TODO: Add system to update dynamic visibility nodes
 
         //
         // Visibility
@@ -443,13 +407,17 @@ impl GameRenderer {
             main_view_dynamic_visibility_result.handles.len()
         );
 
-        let sprite_render_nodes = resources.get::<SpriteRenderNodeSet>().unwrap();
-        let mesh_render_nodes = resources.get::<MeshRenderNodeSet>().unwrap();
-        let mut all_render_nodes = AllRenderNodes::default();
-        all_render_nodes.add_render_nodes(&*sprite_render_nodes);
-        all_render_nodes.add_render_nodes(&*mesh_render_nodes);
+        let frame_packet_builder = {
+            let mut sprite_render_nodes = resources.get_mut::<SpriteRenderNodeSet>().unwrap();
+            sprite_render_nodes.update();
+            let mut mesh_render_nodes = resources.get_mut::<MeshRenderNodeSet>().unwrap();
+            mesh_render_nodes.update();
+            let mut all_render_nodes = AllRenderNodes::default();
+            all_render_nodes.add_render_nodes(&*sprite_render_nodes);
+            all_render_nodes.add_render_nodes(&*mesh_render_nodes);
 
-        let frame_packet_builder = FramePacketBuilder::new(&all_render_nodes);
+            FramePacketBuilder::new(&all_render_nodes)
+        };
 
         // After these jobs end, user calls functions to start jobs that extract data
         frame_packet_builder.add_view(

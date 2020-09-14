@@ -27,7 +27,7 @@ use minimum::math::BoundingAabb;
 use itertools::Itertools;
 use legion::*;
 use minimum::pipeline::PrefabAsset;
-use minimum::components::{TransformComponentDef, EditorMetadataComponent, TransformComponent};
+use minimum::components::{TransformComponentDef, EditorMetadataComponent};
 use crate::components::{
     MeshComponentDef, DirectionalLightComponent, PointLightComponent, SpotLightComponent,
 };
@@ -1052,11 +1052,18 @@ fn add_nodes_to_world(
         };
 
         // Temporary
+        // let transform_component = {
+        //     let m = node.transform().matrix();
+        //     let m = glam::Mat4::from_cols_array_2d(&m);
+        //     let tformed = parent_transform * m;
+        //     TransformComponent { transform: tformed }
+        // };
+
         let transform_component = {
             let m = node.transform().matrix();
             let m = glam::Mat4::from_cols_array_2d(&m);
             let tformed = parent_transform * m;
-            TransformComponent { transform: tformed }
+            TransformComponentDef::from_matrix(tformed)
         };
 
         let components = vec![(transform_component, mesh_component)];

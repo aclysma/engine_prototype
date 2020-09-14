@@ -47,41 +47,29 @@ pub fn populate_test_sprite_entities(
         let mut dynamic_visibility_node_set =
             resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
 
-        // User calls functions to register render objects
-        // - This is a retained API because render object existence can trigger loading streaming assets and
-        //   keep them resident in memory
-        // - Some render objects might not correspond to legion entities, and some people might not be using
-        //   legion at all
-        // - the `_with_handle` variant allows us to get the handle of the value that's going to be allocated
-        //   This resolves a circular dependency where the component needs the render node handle and the
-        //   render node needs the entity.
-        // - ALTERNATIVE: Could create an empty entity, create the components, and then add all of them
-        sprite_render_nodes.register_sprite_with_handle(|sprite_handle| {
-            let aabb_info = DynamicAabbVisibilityNode {
-                handle: sprite_handle.into(),
-                // aabb bounds
-            };
-
-            // User calls functions to register visibility objects
-            // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
-            let visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
-
-            let mut transform_component = TransformComponentDef::default();
-            *transform_component.position_mut() = position;
-            let sprite_component = SpriteComponent {
-                sprite_handle,
-                visibility_handle,
-                alpha,
-                image: sprite_image.clone(),
-            };
-
-            let entity = world
-                .extend((0..1).map(|_| (transform_component.clone(), sprite_component.clone())))[0];
-
-            SpriteRenderNode {
-                entity, // sprite asset
-            }
+        let render_node = sprite_render_nodes.register_sprite(SpriteRenderNode {
+            position,
+            alpha,
+            image: sprite_image.clone(),
         });
+
+        let aabb_info = DynamicAabbVisibilityNode {
+            handle: render_node.as_raw_generic_handle(),
+            // aabb bounds
+        };
+
+        let visibility_node = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
+
+        let mut transform_component = TransformComponentDef::default();
+        *transform_component.position_mut() = position;
+        let sprite_component = SpriteComponent {
+            render_node,
+            visibility_node,
+            alpha,
+            image: sprite_image.clone(),
+        };
+
+        world.extend((0..1).map(|_| (transform_component.clone(), sprite_component.clone())));
     }
 }
 
@@ -104,38 +92,26 @@ pub fn populate_test_mesh_entities(
         let mut dynamic_visibility_node_set =
             resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
 
-        // User calls functions to register render objects
-        // - This is a retained API because render object existence can trigger loading streaming assets and
-        //   keep them resident in memory
-        // - Some render objects might not correspond to legion entities, and some people might not be using
-        //   legion at all
-        // - the `_with_handle` variant allows us to get the handle of the value that's going to be allocated
-        //   This resolves a circular dependency where the component needs the render node handle and the
-        //   render node needs the entity.
-        // - ALTERNATIVE: Could create an empty entity, create the components, and then add all of them
-        // mesh_render_nodes.register_mesh_with_handle(|mesh_handle| {
-        //     let aabb_info = DynamicAabbVisibilityNode {
-        //         handle: mesh_handle.into(),
-        //         // aabb bounds
-        //     };
-        //
-        //     // User calls functions to register visibility objects
-        //     // - This is a retained API because presumably we don't want to rebuild spatial structures every frame
-        //     let _visibility_handle = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
-        //
-        //     let transform_component = TransformComponent::from_position(position);
-        //     let mesh_component = MeshComponent {
-        //         // mesh_handle,
-        //         // visibility_handle,
-        //         mesh: Some(mesh.clone()),
-        //     };
-        //
-        //     let entity = world.extend(vec![(transform_component, mesh_component)])[0];
-        //
-        //     MeshRenderNode {
-        //         entity, // sprite asset
-        //     }
-        // });
+        let transform_component = TransformComponent::from_position(position);
+
+        let render_node = mesh_render_nodes.register_mesh(MeshRenderNode {
+            transform: transform_component.transform(),
+            mesh: Some(mesh.clone()),
+        });
+
+        let aabb_info = DynamicAabbVisibilityNode {
+            handle: render_node.as_raw_generic_handle(),
+            // aabb bounds
+        };
+
+        let visibility_node = dynamic_visibility_node_set.register_dynamic_aabb(aabb_info);
+        let mesh_component = MeshComponent {
+            render_node,
+            visibility_node,
+            mesh: Some(mesh.clone()),
+        };
+
+        world.extend(vec![(transform_component, mesh_component)]);
     }
 }
 

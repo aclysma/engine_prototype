@@ -3,8 +3,7 @@ use renderer::nodes::{
     RenderNodeSet, RenderNodeCount, FrameNodeIndex,
 };
 use crate::render_contexts::{RenderJobExtractContext, RenderJobWriteContext, RenderJobPrepareContext};
-use legion::Entity;
-use renderer::base::slab::{RawSlabKey, RawSlab};
+use renderer::base::slab::{DropSlabKey, DropSlab};
 use std::convert::TryInto;
 use atelier_assets::loader::handle::Handle;
 
@@ -98,11 +97,11 @@ pub struct MeshRenderNode {
     pub transform: glam::Mat4,
 }
 
-#[derive(Copy, Clone)]
-pub struct MeshRenderNodeHandle(pub RawSlabKey<MeshRenderNode>);
+#[derive(Clone)]
+pub struct MeshRenderNodeHandle(pub DropSlabKey<MeshRenderNode>);
 
-impl Into<GenericRenderNodeHandle> for MeshRenderNodeHandle {
-    fn into(self) -> GenericRenderNodeHandle {
+impl MeshRenderNodeHandle {
+    pub fn as_raw_generic_handle(&self) -> GenericRenderNodeHandle {
         GenericRenderNodeHandle::new(
             <MeshRenderFeature as RenderFeature>::feature_index(),
             self.0.index(),
@@ -110,9 +109,15 @@ impl Into<GenericRenderNodeHandle> for MeshRenderNodeHandle {
     }
 }
 
+impl Into<GenericRenderNodeHandle> for MeshRenderNodeHandle {
+    fn into(self) -> GenericRenderNodeHandle {
+        self.as_raw_generic_handle()
+    }
+}
+
 #[derive(Default)]
 pub struct MeshRenderNodeSet {
-    meshes: RawSlab<MeshRenderNode>,
+    meshes: DropSlab<MeshRenderNode>,
 }
 
 impl MeshRenderNodeSet {
@@ -123,18 +128,15 @@ impl MeshRenderNodeSet {
         MeshRenderNodeHandle(self.meshes.allocate(node))
     }
 
-    pub fn unregister_mesh(
-        &mut self,
-        handle: MeshRenderNodeHandle,
-    ) {
-        self.meshes.free(handle.0);
-    }
-
     pub fn get_mut(
         &mut self,
-        handle: MeshRenderNodeHandle,
+        handle: &MeshRenderNodeHandle,
     ) -> Option<&mut MeshRenderNode> {
-        self.meshes.get_mut(handle.0)
+        self.meshes.get_mut(&handle.0)
+    }
+
+    pub fn update(&mut self) {
+        self.meshes.process_drops();
     }
 }
 

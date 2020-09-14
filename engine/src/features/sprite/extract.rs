@@ -13,7 +13,7 @@ use renderer::vulkan::VkDeviceContext;
 use renderer::assets::resources::{PipelineSwapchainInfo, DescriptorSetAllocatorRef};
 use atelier_assets::loader::handle::Handle;
 use renderer::assets::resources::DescriptorSetArc;
-use legion::EntityStore;
+use legion::*;
 use renderer::assets::MaterialAsset;
 use minimum::components::{TransformComponent};
 
@@ -82,6 +82,22 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
         self.extracted_frame_node_sprite_data
             .reserve(frame_packet.frame_node_count(self.feature_index()) as usize);
 
+        // Update the mesh render nodes. This could be done earlier as part of a system
+        let mut sprite_render_nodes = extract_context
+            .resources
+            .get_mut::<SpriteRenderNodeSet>()
+            .unwrap();
+        let mut query = <(Read<TransformComponent>, Read<SpriteComponent>)>::query();
+
+        for (transform_component, sprite_component) in query.iter(extract_context.world) {
+            let render_node = sprite_render_nodes
+                .get_mut(&sprite_component.render_node)
+                .unwrap();
+            render_node.image = sprite_component.image.clone();
+            render_node.alpha = sprite_component.alpha;
+            render_node.position = transform_component.position();
+        }
+
         // for view in views {
         //     let layout = extract_context.resource_manager.get_descriptor_set_info(&self.sprite_material, 0, 0);
         //     let mut descriptor_set = self.descriptor_set_allocator.create_dyn_descriptor_set_uninitialized(&layout.descriptor_set_layout).unwrap();
@@ -142,27 +158,11 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
             .resources
             .get::<SpriteRenderNodeSet>()
             .unwrap();
-        let sprite_render_node = sprite_nodes.sprites.get(render_node_handle).unwrap();
-
-        let entity = extract_context
-            .world
-            .entry_ref(sprite_render_node.entity)
-            .unwrap();
-
-        let transform_component = entity.get_component::<TransformComponent>().ok();
-        let sprite_component = entity.get_component::<SpriteComponent>().ok();
-
-        if transform_component.is_none() || sprite_component.is_none() {
-            self.extracted_frame_node_sprite_data.push(None);
-            return;
-        }
-
-        let transform_component = transform_component.unwrap();
-        let sprite_component = sprite_component.unwrap();
+        let sprite_render_node = sprite_nodes.sprites.get_raw(render_node_handle).unwrap();
 
         let image_info = extract_context
             .resource_manager
-            .get_image_info(&sprite_component.image);
+            .get_image_info(&sprite_render_node.image);
 
         if image_info.is_none() {
             self.extracted_frame_node_sprite_data.push(None);
@@ -188,11 +188,11 @@ impl DefaultExtractJobImpl<RenderJobExtractContext, RenderJobPrepareContext, Ren
 
         self.extracted_frame_node_sprite_data
             .push(Some(ExtractedSpriteData {
-                position: transform_component.position(),
+                position: sprite_render_node.position,
                 texture_size: glam::Vec2::new(50.0, 50.0),
                 scale: 1.0,
                 rotation: 0.0,
-                alpha: sprite_component.alpha,
+                alpha: sprite_render_node.alpha,
                 texture_descriptor_set,
             }));
     }
