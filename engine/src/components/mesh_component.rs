@@ -118,12 +118,12 @@ impl SpawnFrom<MeshComponentDef> for MeshComponent {
         let mut dynamic_visibility_node_set =
             resources.get_mut::<DynamicVisibilityNodeSet>().unwrap();
 
-        let mesh_component_defs = legion_transaction::get_component_slice_from_archetype::<
+        let mesh_component_defs = legion_prefab::get_component_slice_from_archetype::<
             MeshComponentDef,
         >(src_components, src_arch, src_entity_range.clone())
         .unwrap();
 
-        let transform_component_defs = legion_transaction::iter_component_slice_from_archetype::<
+        let transform_component_defs = legion_prefab::iter_component_slice_from_archetype::<
             TransformComponentDef,
         >(src_components, src_arch, src_entity_range);
 
